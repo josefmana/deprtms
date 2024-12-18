@@ -1,3 +1,19 @@
+# files not supposed to be shared
+models/**/*.rds
+**/.DS_Store
+**/*.docx
+**/*.pages
+**/*.tiff
+**/*.aux
+**/*.out
+**/*.ttt
+**/*.fff
+**/*.log
+Rplots.pdf
+
+# ignore all _* folders
+_*/
+
 # History files
 .Rhistory
 .Rapp.history
