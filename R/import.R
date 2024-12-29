@@ -3,7 +3,7 @@
 #
 
 #
-# LIST PATH TO A FILE----
+# LIST PATH TO A FILE ----
 list_path <- function(folder, file) here(folder, file)
 
 #
@@ -51,7 +51,7 @@ import_data <- function(file, format = "long") {
         ordered = F
       ),
       laterality = factor(
-        x = case_when(laterality %in% c("P","p") ~ 1, laterality %in% c("L","l") ~ 1),
+        x = case_when(laterality %in% c("P","p") ~ 0, laterality %in% c("L","l") ~ 1),
         levels = 0:1,
         labels = c("right", "left"),
         ordered = F
