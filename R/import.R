@@ -44,6 +44,11 @@ import_data <- function(file, format = "long") {
     ) %>%
     mutate( # formatting proper
       STUDY_ID = factor(x = STUDY_ID),
+      completed = if_else( # manually re-code completion for subject #130
+        condition = STUDY_ID == 130,
+        true = 0,
+        false = completed
+      ),
       sex = factor(
         x = case_when(sex == "f" ~ 0, sex == "m" ~ 1),
         levels = 0:1,

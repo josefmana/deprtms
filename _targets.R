@@ -8,10 +8,11 @@ library(targets)
 # Set target options:
 tar_option_set( packages = c(
   
-  "here", # for path listing
+  "here",      # for path listing
   "tidyverse", # for data wrangling
-  "ggdag", # for DAG drawing
-  "ggraph" # for advance DAG/ggplot operations
+  "ggdag",     # for DAG drawing
+  "ggraph",    # for advanced DAG/ggplot operations
+  "gt"         # for nice tables
   #"ggtext", # for adding text to plots
   #"patchwork" # for arranging plots
   
@@ -65,11 +66,11 @@ list(
   
   ## DATA DESCRIPTION ----
   tar_target(
-    name = T1_intention_to_treat, # descriptive table for the intention-to-treat analysis
+    name = table_description_ITT, # descriptive table for the intention-to-treat analysis
     command = description_table(.data = data_long, include = c(0,1), decs = 2)
   ),
   tar_target(
-    name = T1_per_protocol, # descriptive table for the per protocol analysiss
+    name = table_description_PP, # descriptive table for the per protocol analysiss
     command = description_table(.data = data_long, include = 1, decs = 2)
   )
   
