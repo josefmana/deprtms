@@ -12,7 +12,8 @@ tar_option_set( packages = c(
   "tidyverse", # for data wrangling
   "ggdag",     # for DAG drawing
   "ggraph",    # for advanced DAG/ggplot operations
-  "gt"         # for nice tables
+  "gt",        # for nice tables
+  "ggpubr",    # for easier time with boxplots
   #"ggtext", # for adding text to plots
   #"patchwork" # for arranging plots
   

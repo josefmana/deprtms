@@ -65,7 +65,7 @@ import_data <- function(file, format = "long") {
       stim_type = factor(
         x = case_when(stim_type == "HF" ~ 0, stim_type == "TBS" ~ 1),
         levels = 0:1,
-        labels = c("HF", "TBS"),
+        labels = c("HF-rTMS", "TBS"),
         ordered = F
       ),
       across(
@@ -78,7 +78,8 @@ import_data <- function(file, format = "long") {
         labels = paste0("T",0:2),
         ordered = T
       )
-    )
+    ) %>%
+    rename("treatment" = "stim_type")
   
   # do the first pivoting to wider
   d0$long <-

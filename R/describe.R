@@ -21,6 +21,46 @@ cenvar <- function(.y, .dec = 2, cen = "mean", var = "sd", sep = " ± ") sapply(
 ) %>% paste(collapse = sep)
 
 #
+# FORMAT TABLE TO APA STYLE ----
+gt_apa <- function(x, grp = NULL, nms = NULL, title = " ") x %>%
+  
+  gt(groupname_col = grp, rowname_col = nms) %>%
+  tab_options(
+    table.border.top.color = "white",
+    heading.title.font.size = px(16),
+    column_labels.border.top.width = 3,
+    column_labels.border.top.color = "black",
+    column_labels.border.bottom.width = 3,
+    column_labels.border.bottom.color = "black",
+    table_body.border.bottom.color = "black",
+    table.border.bottom.color = "white",
+    table.width = pct(100),
+    table.background.color = "white"
+  ) %>%
+  cols_align(align="center") %>%
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      cell_text(
+        align="center"
+      ),
+      cell_fill(color = "white", alpha = NULL)
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  ) %>%
+  tab_header( # title setup
+    title = html("<i>", title, "</i>")
+  ) %>%
+  opt_align_table_header(align = "left")
+
+#
 # PREPARE A DESCRIPTIVE TABLE ----
 description_table <- function(.data, include = 1, decs = 2) {
  
@@ -59,21 +99,21 @@ description_table <- function(.data, include = 1, decs = 2) {
         ordered = T
       )
     ) %>%
-    group_by(stim_type, scale, subscale, occasion) %>%
+    group_by(treatment, scale, subscale, occasion) %>%
     summarise( N = sum( !is.na(score) ), Score = cenvar(score, .dec = decs) ) %>%
     ungroup() %>%
-    pivot_wider(values_from = c("N","Score"), names_from = c("stim_type","occasion") ) %>%
+    pivot_wider(values_from = c("N","Score"), names_from = c("treatment","occasion") ) %>%
     
-    relocate(Score_HF_T0, .after = N_HF_T0) %>%
-    relocate(Score_HF_T1, .after = N_HF_T1) %>%
-    relocate(Score_HF_T2, .after = N_HF_T2) %>%
+    relocate(`Score_HF-rTMS_T0`, .after = `N_HF-rTMS_T0`) %>%
+    relocate(`Score_HF-rTMS_T1`, .after = `N_HF-rTMS_T1`) %>%
+    relocate(`Score_HF-rTMS_T2`, .after = `N_HF-rTMS_T2`) %>%
     relocate(Score_TBS_T0, .after = N_TBS_T0) %>%
     relocate(Score_TBS_T1, .after = N_TBS_T1)
   
   # do post-processing specific for per-protocol analysis (i.e., for include == 1)
   if ( isTRUE(include == 1) ) {
     
-    N <- c( HF = unique(tab0$N_HF_T0), TBS = unique(tab0$N_TBS_T0) ) # number of subjects in each group
+    N <- c( HF = unique(tab0$`N_HF-rTMS_T0`), TBS = unique(tab0$N_TBS_T0) ) # number of subjects in each group
     tab0 <- tab0 %>% select( -starts_with("N") ) # drop rows with number of observations
     note <- sapply( N, function(n) paste0("N = ", n) ) # prepare notes with group numbers
     
@@ -82,7 +122,7 @@ description_table <- function(.data, include = 1, decs = 2) {
   # prepare the common aspects of the table via gt()
   tab <- tab0 %>%
     
-    gt(groupname_col = "scale", rowname_col = "subscale") %>%
+    gt_apa(grp = "scale", nms = "subscale") %>%
     cols_align(columns = 1:2, align = "left") %>%
     cols_align(columns = -(1:2), align = "center")
   
@@ -91,7 +131,7 @@ description_table <- function(.data, include = 1, decs = 2) {
     
     tab <- tab %>%
       
-      tab_spanner(columns = contains("HF"), label = "HF-rTMS", gather = F) %>%
+      tab_spanner(columns = contains("HF-rTMS"), label = "HF-rTMS", gather = F) %>%
       tab_spanner(columns = contains("TBS"), label = "TBS", gather = F) %>%
       
       cols_label(
