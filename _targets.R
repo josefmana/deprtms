@@ -14,8 +14,9 @@ tar_option_set( packages = c(
   "ggraph",    # for advanced DAG/ggplot operations
   "gt",        # for nice tables
   "ggpubr",    # for easier time with boxplots
-  #"ggtext", # for adding text to plots
-  #"patchwork" # for arranging plots
+  "rstatix",   # for repeated measures ANOVAs
+  "patchwork"  # for arranging plots
+  #"ggtext" # for adding text to plots
   
 ) )
 
@@ -63,6 +64,10 @@ list(
   tar_target(
     name = data_long, # data in long-format w.r.t. time-point and w.r.t. to outcomes
     command = import_data(file = data_file, format = "longer")
+  ),
+  tar_target(
+    name = outcomes, # table containing labelling conventions regarding outcomes 
+    command = list_outcomes()
   ),
   
   ## DATA DESCRIPTION ----

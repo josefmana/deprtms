@@ -89,7 +89,8 @@ description_table <- function(.data, include = 1, decs = 2) {
         labels = c(
           "Total score",
           "Somatization",
-          "Psychological Anxiety","Anxiety",
+          "Psychological Anxiety",
+          "Anxiety",
           "Weight Loss",
           "Thought Disorders",
           "Disturbed Circadian Rhythm",
