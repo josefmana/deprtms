@@ -78,6 +78,12 @@ list(
   tar_target(
     name = table_description_PP, # descriptive table for the per protocol analysiss
     command = description_table(.data = data_long, include = 1, decs = 2)
+  ),
+  
+  ## PER PROTOCOL ANALYSIS ----
+  tar_target(
+    name = per_protocol_ANOVAs, # repeated measures ANOVAs for first approximation per protocol analysis
+    command = conduct_ANOVA_loop(.data = data_half, labs = outcomes)
   )
   
 )
