@@ -44,8 +44,8 @@ import_data <- function(file, format = "long") {
     ) %>%
     mutate( # formatting proper
       STUDY_ID = factor(x = STUDY_ID),
-      completed = if_else( # manually re-code completion for subject #130
-        condition = STUDY_ID == 130,
+      completed = if_else( # manually re-code completion for subjects #130 and #148
+        condition = STUDY_ID %in% c(130, 148),
         true = 0,
         false = completed
       ),

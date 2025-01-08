@@ -6,45 +6,58 @@
 # EXTRACT DATA FOR PER PROTOCOL ANALYSIS ----
 extract_per_protocol_data <- function(.data) subset(x = .data, completed == 1)
 
+# PRE-FORMAT DATA NEEDED FOR PLOTTING ----
+preformat_data <- function(input) mutate(
+  
+  .data = input,
+  `Treatment:` = treatment,
+  Occasion = factor(
+    x = occasion,
+    levels = paste0("T",0:2),
+    labels = c("Pre-treatment", "Post-treatment", "Follow-up"),
+    ordered = T
+  )
+  
+)
+
+#
+# CONDUCT A SERIES OF T-TEST WITH ADDED EFFECT SIZE CALCULATION ----
+test_paired_differences <- function(input, grouping, predictor, reference, y, dependent = T) lapply(
+  
+  c("t_test", "cohens_d"), # functions to be applied
+  function(fun) {
+    
+    set.seed(87542) # set seed for reproducibility
+    do.call( # call t-test or effect size function
+      
+      what = fun,
+      args = list(
+        
+        data = input,
+        formula = as.formula( paste(y, predictor, sep = " ~ ") ),
+        ref.group = reference,
+        paired = dependent,
+        var.equal = F,
+        conf.level = .95,
+        hedges.correction = T, # for correction of Cohen's d
+        ci = T # return CIs for Cohen's d
+        
+      )[if (fun == "t_test") 1:6 else 1:8] # keep only arguments 1:6 for t-test, all for effect size
+      
+    )
+    
+  }
+  
+) %>% reduce( # glue t-test and effect sizes together
+  
+  left_join,
+  by = c(grouping,".y.","group1","group2","n1","n2")
+  
+)
+
 #
 # CONDUCT CLASSICAL STATISTICAL TESTS ----
 conduct_mixed_ANOVA <- function(.data, outcome, labels) {
-  
-  #
-  ## ---- in-house function for t-test / Cohen's combo ----
-  #
-  diff_test <- function(input, grouping, predictor, reference, dependent = T) lapply(
-    
-    c("t_test", "cohens_d"), # functions to be applied
-    function(fun) {
-      
-      set.seed(87542) # set seed for reproducibility
-      do.call( # call t-test or effect size function
-        
-        what = fun,
-        args = list(
-          
-          data = input,
-          formula = as.formula( paste(outcome, predictor, sep = " ~ ") ),
-          ref.group = reference,
-          paired = dependent,
-          var.equal = F,
-          conf.level = .95,
-          hedges.correction = T, # for correction of Cohen's d
-          ci = T # return CIs for Cohen's d
-          
-        )[if (fun == "t_test") 1:6 else 1:8] # keep only arguments 1:6 for t-test, all for effect size
-        
-      )
-      
-    }
-    
-  ) %>% reduce( # glue t-test and effect sizes together
-    
-    left_join,
-    by = c(grouping,".y.","group1","group2","n1","n2")
-    
-  )
   
   #
   ## ---- prepare data ----
@@ -81,12 +94,13 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels) {
   ## ---- simple main effects ----
   #
   # treatment differences per occasion
-  treat_diffs <- diff_test(
+  treat_diffs <- test_paired_differences(
     
     input = group_by(.data = data, occasion),
     grouping = "occasion",
     predictor = "treatment",
     reference = "HF-rTMS",
+    y = outcome,
     dependent = F
     
   )
@@ -104,12 +118,13 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels) {
   
   
   # paired differences between occasions per treatment level
-  occas_diffs <- diff_test(
+  occas_diffs <- test_paired_differences(
     
     input = group_by(.data = data, treatment),
     grouping = "treatment",
     predictor = "occasion",
-    reference = "T0",
+    reference = NULL,
+    y = outcome,
     dependent = T
     
   )
@@ -123,32 +138,19 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels) {
   # for treatment main effects)
   
   # main effect pairwise comparisons of occasion
-  occas_main <- diff_test(
+  occas_main <- test_paired_differences(
     
     input = data,
     grouping = NULL,
     predictor = "occasion",
-    reference = "T0",
+    reference = NULL,
+    y = outcome,
     dependent = T
     
   )
   
   #
   ## prepare a plot ----
-  #
-  # pre-format data files needed for plotting function
-  prep_data <- function(input) mutate(
-    
-    .data = input,
-    `Treatment:` = treatment,
-    Occasion = factor(
-      x = occasion,
-      levels = paste0("T",0:2),
-      labels = c("Pre-treatment", "Post-treatment", "Follow-up"),
-      ordered = T
-    )
-    
-  )
   
   # calculate mean and 95% CIs for each treatment/occassion combination
   sum_stats <- data %>%
@@ -165,14 +167,14 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels) {
       conf.high = M + qt(.975, df = N-1) * SEM # upper confidence interval end point for a mean with unknown variance
     ) %>%
     ungroup() %>%
-    prep_data()
+    preformat_data()
   
   # plot the data & results
   plt <-
     
     # prepare data for plotting
     data %>%
-    prep_data() %>%
+    preformat_data() %>%
     
     # plotting proper
     ggplot() +

@@ -13,9 +13,11 @@ make_dag <- function(plot = T) {
 
     name = c(
       paste0("SDS_T", 0:2),      # observed depressive symptoms variables (self-rating)
+      paste0("QIDS_T", 0:2),     # observed depressive symptoms variables (self-rating)
       paste0("HAMD_tot_T", 0:2), # observed depressive symptoms variables (clinician-rating)
       paste0("Depr_T", 0:2),     # latent depression state variables
       paste0("ed_T", 0:2),       # unobserved error scores for depression (self-rating)
+      paste0("ed_T", 0:2,"q"),   # unobserved error scores for depression (self-rating)
       paste0("td_T", 0:2),       # unobserved error scores for depression (clinician-rating)
       "Stim",                    # intervention/treatment variable
       paste0("BAI_T", 0:2),      # observed anxiety symptoms variables (self-rating)
@@ -26,8 +28,10 @@ make_dag <- function(plot = T) {
     ),
     label = c(
       "SDS[T0]", "SDS[T1]", "SDS[T2]",                      # observed depressive symptoms variables (self-rating)
+      "QIDS[T0]", "QIDS[T1]", "QIDS[T2]",                   # observed depressive symptoms variables (self-rating)
       "HAMD[T0]", "HAMD[T1]", "HAMD[T2]",                   # observed depressive symptoms variables (clinician-rating)
       "Depr[T0]", "Depr[T1]", "Depr[T2]",                   # latent depression state variables
+      "epsilon[D[T0]]", "epsilon[D[T1]]", "epsilon[D[T2]]", # unobserved error scores for depression self-rating
       "epsilon[D[T0]]", "epsilon[D[T1]]", "epsilon[D[T2]]", # unobserved error scores for depression self-rating
       "tau[D[T0]]", "tau[D[T1]]", "tau[D[T2]]",             # unobserved error scores for depression clinician-rating
       "TMS",                                                # intervention/treatment variable
@@ -38,22 +42,26 @@ make_dag <- function(plot = T) {
       "tau[A[T0]]", "tau[A[T1]]", "tau[A[T2]]"              # unobserved error scores for anxiety (clinician-rating)
     ),
     x = c(
-      1:3 - 0.25, # observed depressive symptoms variables (self-rating)
-      1:3 + 0.25, # observed depressive symptoms variables (clinician-rating)
-      1:3,       # latent depression state variables
-      1:3 - 0.25, # unobserved error scores for depression (self-rating)
-      1:3 + 0.25, # unobserved error scores for depression (clinician-rating)
-      1.75,      # intervention/treatment variable
+      1:3 - 0.33, # observed depressive symptoms variables (self-rating)
+      1:3,        # observed depressive symptoms variables (self-rating)
+      1:3 + 0.33, # observed depressive symptoms variables (clinician-rating)
+      1:3,        # latent depression state variables
+      1:3 - 0.33, # unobserved error scores for depression (self-rating)
+      1:3,        # unobserved error scores for depression (self-rating)
+      1:3 + 0.33, # unobserved error scores for depression (clinician-rating)
+      1.75,       # intervention/treatment variable
       1:3 - 0.25, # observed anxiety symptoms variables (self-rating)
       1:3 + 0.25, # observed anxiety symptoms variables (clinician-rating)
-      1:3,       # latent anxiety state variables
+      1:3,        # latent anxiety state variables
       1:3 - 0.25, # unobserved error scores for anxiety (self-rating)
       1:3 + 0.25  # unobserved error scores for anxiety (clinician-rating)
     ),
     y = c(
       rep(2,3),  # observed depressive symptoms variables (self-rating)
+      rep(2,3),  # observed depressive symptoms variables (self-rating)
       rep(2,3),  # observed depressive symptoms variables (clinician-rating)
       rep(1,3),  # latent depression state variables
+      rep(3,3),  # unobserved error scores for depression (self-rating)
       rep(3,3),  # unobserved error scores for depression (self-rating)
       rep(3,3),  # unobserved error scores for depression (clinician-rating)
       0,         # intervention/treatment variable
@@ -74,6 +82,10 @@ make_dag <- function(plot = T) {
     SDS_T1 ~ Depr_T1 + ed_T1,
     SDS_T2 ~ Depr_T2 + ed_T2,
     
+    QIDS_T0 ~ Depr_T0 + ed_T0q,
+    QIDS_T1 ~ Depr_T1 + ed_T1q,
+    QIDS_T2 ~ Depr_T2 + ed_T2q,
+    
     HAMD_tot_T0 ~ Depr_T0 + td_T0,
     HAMD_tot_T1 ~ Depr_T1 + td_T1,
     HAMD_tot_T2 ~ Depr_T2 + td_T2,
@@ -93,7 +105,7 @@ make_dag <- function(plot = T) {
     Anx_T2 ~ Anx_T1 + Stim,
     
     latent = c(
-      paste0("Depr_T", 0:2), paste0("ed_T", 0:2), paste0("td_T", 0:2),
+      paste0("Depr_T", 0:2), paste0("ed_T", 0:2), paste0("ed_T", 0:2,"q"), paste0("td_T", 0:2),
       paste0("Anx_T", 0:2), paste0("ea_T", 0:2), paste0("ta_T", 0:2)
     ),
     coords = nms
