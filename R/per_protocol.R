@@ -57,7 +57,7 @@ test_paired_differences <- function(input, grouping, predictor, reference, y, de
 
 #
 # CONDUCT CLASSICAL STATISTICAL TESTS ----
-conduct_mixed_ANOVA <- function(.data, outcome, labels) {
+conduct_mixed_ANOVA <- function(.data, outcome, labels, plt_aov = 2) {
   
   #
   ## ---- prepare data ----
@@ -74,7 +74,7 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels) {
   aov <- anova_test(
   
     data = data,
-    dv = outcome,
+    dv = all_of(outcome),
     wid = "STUDY_ID",
     within = "occasion",
     between = "treatment",
@@ -228,6 +228,12 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels) {
     theme_bw(base_size = 16) +
     theme(legend.position = "bottom")
   
+  # add labels regarding effects to the plot if called for
+  if ( is.numeric(plt_aov) ) plt <-
+    
+    plt +
+    labs( subtitle = get_test_label(aov, row = plt_aov, detailed = T, type = "expression") )
+  
   # return a list with all results
   return(
     list(
@@ -245,21 +251,45 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels) {
 
 #
 # CONDUCT CLASSICAL TESTING FOR EACH OUTCOME VARIABLE ----
-conduct_ANOVA_loop <- function(.data, labs) lapply(
+conduct_ANOVA_loop <- function(.data, labs, show_stats = 2) lapply(
   
   set_names(x = 1:nrow(labs), nm = labs$var),
   function(y) conduct_mixed_ANOVA(
     
     .data = .data,
     outcome = labs[y, "var"],
-    labels = labs
+    labels = labs,
+    plt_aov = show_stats
     
   )
 )
 
-
-# IN THE NEXT FUNCTION:
-# ADD ANOVA RESULTS TO PLOTS (SEE https://www.datanovia.com/en/lessons/repeated-measures-anova-in-r/)
-# AND ARRANGE THEM.
-
-
+#
+# PREPARE A BIG ANOVA TABLE ----
+print_ANOVA_table <- function(anovas, labs) lapply(
+  
+  1:nrow(labs),
+  function(y) with(
+    
+    labs,
+    anovas[[var[y]]]$ANOVA_table %>%
+      as_tibble %>%
+      mutate(
+        y = sub_long[[y]],
+        Effect = case_when(
+          Effect == "treatment" ~ "Treatment",
+          Effect == "occasion" ~ "Occasion",
+          Effect == "treatment:occasion" ~ "Treatment * Occasion"
+        )
+      )
+  )
+  
+) %>%
+  
+  reduce(full_join) %>%
+  mutate(
+    q = p.adjust(p = p, method = "BH"),
+    `sig.` = if_else(q < .05, "*", "")
+  ) %>%
+  select(y, Effect, `F`, DFn, DFd, p, q, `sig.`, ges) %>%
+  gt_apa(grp = "y")

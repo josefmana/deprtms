@@ -83,7 +83,7 @@ list(
   ## PER PROTOCOL ANALYSIS ----
   tar_target(
     name = per_protocol_ANOVAs, # repeated measures ANOVAs for first approximation per protocol analysis
-    command = conduct_ANOVA_loop(.data = data_half, labs = outcomes)
+    command = conduct_ANOVA_loop(.data = data_half, labs = outcomes, show_stats = 2)
   )
   
 )
