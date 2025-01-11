@@ -266,9 +266,9 @@ conduct_ANOVA_loop <- function(.data, labs, show_stats = 2) lapply(
 
 #
 # PREPARE A BIG ANOVA TABLE ----
-print_ANOVA_table <- function(anovas, labs) lapply(
+print_ANOVA_table <- function(anovas, labs, tab_no = 1) lapply(
   
-  1:nrow(labs),
+  1:nrow(labs), # re-format each ANOVA table and add outcome column to it
   function(y) with(
     
     labs,
@@ -286,10 +286,232 @@ print_ANOVA_table <- function(anovas, labs) lapply(
   
 ) %>%
   
+  # prepare variables to suitable format
   reduce(full_join) %>%
   mutate(
     q = p.adjust(p = p, method = "BH"),
-    `sig.` = if_else(q < .05, "*", "")
+    `sig.` = if_else(q < .05, "*", ""),
+    `F` = rprint(.x = `F`, .decimals = 3),
+    DFn = rprint(.x = DFn, .decimals = 2),
+    DFd = rprint(.x = DFd, .decimals = 2),
+    p = pprint(.p = p, .dec = 3, text = F),
+    q = pprint(.p = q, .dec = 3, text = F),
+    ges = rprint(.x = ges, .decimals = 3)
   ) %>%
   select(y, Effect, `F`, DFn, DFd, p, q, `sig.`, ges) %>%
-  gt_apa(grp = "y")
+  
+  # do table formatting
+  gt_apa(
+    grp = "y",
+    title = paste0(
+      "<b>Table ", tab_no,
+      "</b><br><i>A series of univariate mixed ANOVAs testing for null effects in a per-protocol analysis.</i>"
+    )
+  ) %>%
+  cols_label(
+    `F` ~ "{{*F*}}",
+    DFn ~ "{{*df*_*n*}}",
+    DFd ~ "{{*df*_*d*}}",
+    p ~ "{{*p*}}",
+    q ~ "{{*q*}}",
+    ges ~ "{{:eta:^2}}"
+  ) %>%
+  tab_source_note(
+    source_note = md("*F*: F statistic from a mixed analysis of variance; *df*~*n*~: numerator degrees
+    of freedom of the F statistic; *df*~*d*~: denominator (residual) degrees of freedom the F statistic;
+    *p*: nominal p-value; *q*: false discovery rate (FDR) adjusted p-value (i.e., the q-value); sig.:
+    statistically significant effects after adjusting for 5% FDR; η^2^: generalised η-squared measure
+    of effect size.")
+  )
+
+#
+# EXTRACT TABLE OF PAIRED COMPARISONS ----
+print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", tab_no = "A1") {
+  
+  ## ---- prepare a data.frame for later gt() formatting ----
+  df <- lapply(
+    
+    1:nrow(labs), # re-format each paired comparions table and add outcome column to it
+    function(y) with(
+      
+      labs,
+      comps[[var[y]]][[paste0(x,"_",type,"_comp")]] %>%
+        as_tibble %>%
+        mutate(y = sub_abre[[y]])
+    )
+    
+  ) %>%
+    
+    # prepare variables to suitable format
+    reduce(full_join) %>%
+    mutate(
+      comparison = paste0(group2,"-",group1),
+      t = rprint(statistic, 3),
+      df = rprint(df, 0),
+      p = sapply( 1:nrow(.), function(i) pprint(.p = p[i], .dec = 3, text = F) ),
+      d = paste0(rprint(effsize, 2)," [", rprint(conf.low,2),", ",rprint(conf.high,2),"]")
+    )
+  
+  ## ---- add the condition variable (that's being conditioned on) ----
+  if (x == "occas" & type == "main") {
+    df$condition <- "none"
+  } else if(x == "occas" & type == "simp") {
+    df$condition <- df$treatment
+  } else if(x == "treat") {
+    df$condition <- df$occasion
+  }
+  #if     (x == "occas" & type == "main") df$condition <- "none"
+  #else if(x == "occas" & type == "simp") df$condition <- df$treatment
+  #else if(x == "treat"                 ) df$condition <- df$occasion
+  
+  ## ---- keep only columns of interest ----
+  df <-
+    df %>%
+    select(y, condition, comparison, t, df, p, d, magnitude) %>%
+    pivot_wider(id_cols = y, values_from = c(t, df, p, d, magnitude), names_from = c(condition, comparison) )
+  
+  ## ---- prepare a gt() file ----
+  if (x == "occas" & type == "main") {
+    
+    tab <- df %>%
+      
+      # arrange columns
+      setNames( sub("none_", "", names(.) ) ) %>%
+      relocate(`df_T1-T0`       , .after = `t_T1-T0` ) %>% # T1-minus-T0
+      relocate(`p_T1-T0`        , .after = `df_T1-T0`) %>%
+      relocate(`d_T1-T0`        , .after = `p_T1-T0` ) %>%
+      relocate(`magnitude_T1-T0`, .after = `d_T1-T0` ) %>%
+      relocate(`df_T2-T0`       , .after = `t_T2-T0` ) %>% # T2-minus-T0
+      relocate(`p_T2-T0`        , .after = `df_T2-T0`) %>%
+      relocate(`d_T2-T0`        , .after = `p_T2-T0` ) %>%
+      relocate(`magnitude_T2-T0`, .after = `d_T2-T0` ) %>%
+      
+      gt_apa(
+        title = paste0(
+          "<b>Table ", tab_no,
+          "</b><br><i>Paired comaparisons regarding main effects of the Occasion variable in a per-protocol analysis.</i>"
+        )
+      ) %>%
+      
+      tab_spanner(columns = ends_with("T1-T0"),  label = "T1-minus-T0", gather = F) %>%
+      tab_spanner(columns = ends_with("T2-T0"),  label = "T2-minus-T0", gather = F) %>%
+      tab_spanner(columns = ends_with("T2-T1"),  label = "T2-minus-T1", gather = F) %>%
+      
+      cols_label(
+        y                         ~ "Outcome",
+        starts_with("t_")         ~ "{{*t*}}",
+        starts_with("df_")        ~ "df",
+        starts_with("p_")         ~ "{{*p*}}",
+        starts_with("d_")         ~ "{{*d*}}",
+        starts_with("magnitude_") ~ "ES"
+      )
+    
+      
+  } else if (x == "occas" & type == "simp") {
+    
+    tab <- df %>%
+      
+      # arrange columns
+      relocate(`df_HF-rTMS_T1-T0`       , .after = `t_HF-rTMS_T1-T0` ) %>% # T1-minus-T0 in HF-rTMS
+      relocate(`p_HF-rTMS_T1-T0`        , .after = `df_HF-rTMS_T1-T0`) %>%
+      relocate(`d_HF-rTMS_T1-T0`        , .after = `p_HF-rTMS_T1-T0` ) %>%
+      relocate(`magnitude_HF-rTMS_T1-T0`, .after = `d_HF-rTMS_T1-T0` ) %>%
+      
+      relocate(`t_TBS_T1-T0`        , .after = `magnitude_HF-rTMS_T1-T0` ) %>% # T1-minus-T0 in TBS
+      relocate(`df_TBS_T1-T0`       , .after = `t_TBS_T1-T0`             ) %>%
+      relocate(`p_TBS_T1-T0`        , .after = `df_TBS_T1-T0`            ) %>%
+      relocate(`d_TBS_T1-T0`        , .after = `p_TBS_T1-T0`             ) %>%
+      relocate(`magnitude_TBS_T1-T0`, .after = `d_TBS_T1-T0`             ) %>%
+      
+      relocate(`df_HF-rTMS_T2-T0`       , .after = `t_HF-rTMS_T2-T0` ) %>% # T2-minus-T0 in HF-rTMS
+      relocate(`p_HF-rTMS_T2-T0`        , .after = `df_HF-rTMS_T2-T0`) %>%
+      relocate(`d_HF-rTMS_T2-T0`        , .after = `p_HF-rTMS_T2-T0` ) %>%
+      relocate(`magnitude_HF-rTMS_T2-T0`, .after = `d_HF-rTMS_T2-T0` ) %>%
+      
+      relocate(`t_TBS_T2-T0`        , .after = `magnitude_HF-rTMS_T2-T0` ) %>% # T2-minus-T0 in TBS
+      relocate(`df_TBS_T2-T0`       , .after = `t_TBS_T2-T0`             ) %>%
+      relocate(`p_TBS_T2-T0`        , .after = `df_TBS_T2-T0`            ) %>%
+      relocate(`d_TBS_T2-T0`        , .after = `p_TBS_T2-T0`             ) %>%
+      relocate(`magnitude_TBS_T2-T0`, .after = `d_TBS_T2-T0`             ) %>%
+      
+      relocate(`df_HF-rTMS_T2-T1`       , .after = `t_HF-rTMS_T2-T1` ) %>%
+      relocate(`p_HF-rTMS_T2-T1`        , .after = `df_HF-rTMS_T2-T1`) %>%
+      relocate(`d_HF-rTMS_T2-T1`        , .after = `p_HF-rTMS_T2-T1` ) %>%
+      relocate(`magnitude_HF-rTMS_T2-T1`, .after = `d_HF-rTMS_T2-T1` ) %>%
+      
+      gt_apa(
+        title = paste0(
+          "<b>Table ", tab_no,
+          "</b><br><i>Paired comaparisons regarding simple main effects of the Occasion variable in a per-protocol analysis.</i>"
+        )
+      ) %>%
+      
+      tab_spanner(columns = contains("HF-rTMS"), label = "HF-rTMS",     gather = F) %>%
+      tab_spanner(columns = contains("TBS"),     label = "TBS",         gather = F) %>%
+      tab_spanner(columns = ends_with("T1-T0"),  label = "T1-minus-T0", gather = F) %>%
+      tab_spanner(columns = ends_with("T2-T0"),  label = "T2-minus-T0", gather = F) %>%
+      tab_spanner(columns = ends_with("T2-T1"),  label = "T2-minus-T1", gather = F) %>%
+      
+      cols_label(
+        y                         ~ "Outcome",
+        starts_with("t_")         ~ "{{*t*}}",
+        starts_with("df_")        ~ "df",
+        starts_with("p_")         ~ "{{*p*}}",
+        starts_with("d_")         ~ "{{*d*}}",
+        starts_with("magnitude_") ~ "ES"
+      )
+      
+  } else if (x == "treat") {
+    
+    tab <- df %>%
+      
+      # arrange columns
+      relocate(`df_T0_TBS-HF-rTMS`       , .after = `t_T0_TBS-HF-rTMS`  ) %>% # TBS-minus-HF-rTMS in T0
+      relocate(`p_T0_TBS-HF-rTMS`        , .after = `df_T0_TBS-HF-rTMS` ) %>%
+      relocate(`d_T0_TBS-HF-rTMS`        , .after = `p_T0_TBS-HF-rTMS`  ) %>%
+      relocate(`magnitude_T0_TBS-HF-rTMS`, .after = `d_T0_TBS-HF-rTMS`  ) %>%
+      relocate(`df_T1_TBS-HF-rTMS`       , .after = `t_T1_TBS-HF-rTMS`  ) %>% # TBS-minus-HF-rTMS in T1
+      relocate(`p_T1_TBS-HF-rTMS`        , .after = `df_T1_TBS-HF-rTMS` ) %>%
+      relocate(`d_T1_TBS-HF-rTMS`        , .after = `p_T1_TBS-HF-rTMS`  ) %>%
+      relocate(`magnitude_T1_TBS-HF-rTMS`, .after = `d_T1_TBS-HF-rTMS`  ) %>%
+      
+      
+      gt_apa(
+        title = paste0(
+          "<b>Table ", tab_no,
+          "</b><br><i>Paired comaparisons regarding simple main effects of the Treatment variable in a per-protocol analysis.</i>"
+        )
+      ) %>%
+      
+      tab_spanner(columns = contains("T0"), label = "T0",     gather = F) %>%
+      tab_spanner(columns = contains("T1"), label = "T1",     gather = F) %>%
+      tab_spanner(columns = contains("T2"), label = "T2",     gather = F) %>%
+      
+      cols_label(
+        y                         ~ "Outcome",
+        starts_with("t_")         ~ "{{*t*}}",
+        starts_with("df_")        ~ "df",
+        starts_with("p_")         ~ "{{*p*}}",
+        starts_with("d_")         ~ "{{*d*}}",
+        starts_with("magnitude_") ~ "ES"
+      )
+    
+  }
+  
+  ## ---- finish it ----
+  tab <-
+    tab %>%
+    tab_source_note(
+      source_note = md("HAMA: Hamilton's Depression Inventory; SDS: Self-rating Depression Scale, QIDS:
+      Quick Inventory of Depressive Symptomatology; HAMA: Hamilton's Anxiety Inventory, BAI: Beck's 
+      Anxiety Scale; PSS: Perceived Stress Scale; HF-rTMS: high frequency repetitive transcranial magnetic
+      stimulation; TBS: intermittent theta burst stimulation; *t*: test statistic; df: degrees of freedom;
+      *p*: unadjusted p-value; *d*: Cohen's d with Hedges correction with its 95% confidence interval;
+      ES: verbal classification of the effect size point estimate.")
+    )
+
+  ## return it
+  return(tab)
+  
+  
+}

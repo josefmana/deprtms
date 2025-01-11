@@ -82,8 +82,24 @@ list(
   
   ## PER PROTOCOL ANALYSIS ----
   tar_target(
-    name = per_protocol_ANOVAs, # repeated measures ANOVAs for first approximation per protocol analysis
+    name = per_protocol_ANOVAs, # mixed ANOVAs as the first approximation per protocol analysis
     command = conduct_ANOVA_loop(.data = data_half, labs = outcomes, show_stats = 2)
+  ),
+  tar_target(
+    name = per_protocol_ANOVA_table, # extract a big (set of) ANOVAs table(s)
+    command = print_ANOVA_table(anovas = per_protocol_ANOVAs, labs = outcomes, tab_no = 1)
+  ),
+  tar_target(
+    name = per_protocol_pairwise_occasion_main, # pairwise comparisons for Occasion main effects
+    command = print_paired_comparisons(comps = per_protocol_ANOVAs, labs = outcomes, x = "occas", type = "main", tab_no = "A1")
+  ),
+  tar_target(
+    name = per_protocol_pairwise_occasion_simple, # pairwise comparisons for Occasion simple main effects
+    command = print_paired_comparisons(comps = per_protocol_ANOVAs, labs = outcomes, x = "occas", type = "simp", tab_no = "A2")
+  ),
+  tar_target(
+    name = per_protocol_pairwise_treatment_simple, # pairwise comparisons for Treatmen simple main effects
+    command = print_paired_comparisons(comps = per_protocol_ANOVAs, labs = outcomes, x = "treat", type = "simp", tab_no = "A3")
   )
   
 )

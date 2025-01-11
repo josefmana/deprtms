@@ -8,6 +8,20 @@
 rprint <- function(.x, .decimals = 2) sprintf( paste0("%.",.decimals,"f"), round(.x, .decimals) )
 
 #
+# GET RID OF LEADING ZERO ----
+zerolead <- function(x, dec = 3) sub("0.", ".", rprint(x, dec), fixed = T)
+
+#
+# PRINT P-VALUE ----
+pprint <- function(.p, .dec = 3, text = F) ifelse(
+  
+  test = text == T,
+  yes  = ifelse( .p < .001, "< .001", paste0( "= ", zerolead(.p, .dec) ) ),
+  no   = ifelse( .p < .001, "< .001",               zerolead(.p, .dec)   )
+  
+)
+
+#
 # GIVE CENTRAL TENDENCY ± VARIABILITY ----
 cenvar <- function(.y, .dec = 2, cen = "mean", var = "sd", sep = " ± ") sapply(
   
@@ -27,23 +41,23 @@ gt_apa <- function(x, grp = NULL, nms = NULL, title = " ") x %>%
   
   gt(groupname_col = grp, rowname_col = nms) %>%
   tab_options(
-    table.border.top.color = "white",
-    heading.title.font.size = px(16),
-    column_labels.border.top.width = 3,
-    column_labels.border.top.color = "black",
+    table.border.top.color            = "white",
+    heading.title.font.size           = px(16),
+    column_labels.border.top.width    = 3,
+    column_labels.border.top.color    = "black",
     column_labels.border.bottom.width = 3,
     column_labels.border.bottom.color = "black",
-    table_body.border.bottom.color = "black",
-    table.border.bottom.color = "white",
-    table.width = pct(100),
-    table.background.color = "white"
+    table_body.border.bottom.color    = "black",
+    table.border.bottom.color         = "white",
+    table.width                       = pct(100),
+    table.background.color            = "white"
   ) %>%
-  cols_align(align="center") %>%
+  cols_align(align = "center") %>%
   tab_style(
     style = list(
       cell_borders(
-        sides = c("top", "bottom"),
-        color = "white",
+        sides  = c("top", "bottom"),
+        color  = "white",
         weight = px(1)
       ),
       cell_text(
@@ -53,11 +67,11 @@ gt_apa <- function(x, grp = NULL, nms = NULL, title = " ") x %>%
     ),
     locations = cells_body(
       columns = everything(),
-      rows = everything()
+      rows    = everything()
     )
   ) %>%
   tab_header( # title setup
-    title = html("<i>", title, "</i>")
+    title = html(title)
   ) %>%
   opt_align_table_header(align = "left")
 
@@ -100,7 +114,7 @@ list_outcomes <- function() data.frame(
         "Weight Loss",
         "Thought Disorders",
         "Disturbed Circadian Rhythm",
-        "Retardation (Slowness)",
+        "Retardation",
         "Sleep Disorders"
       )
     ),
@@ -133,9 +147,9 @@ list_outcomes <- function() data.frame(
     "QIDS",
     paste0(
       "HAMA (", c(
-        "Beck's Anxiety Scale",
-        "Perceived Stress Scale",
-        "Chronotype Inventory"
+        "Total score",
+        "Somatization",
+        "Psychological Anxiety"
       ), ")"
     ),
     "BAI",
