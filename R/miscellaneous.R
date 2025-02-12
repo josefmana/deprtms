@@ -1,6 +1,6 @@
 #
 # This is a script used to define more generalised functions to be used
-# at various points throught the processing pipeline.
+# at various points through the processing pipeline.
 #
 
 #
@@ -34,6 +34,32 @@ cenvar <- function(.y, .dec = 2, cen = "mean", var = "sd", sep = " ± ") sapply(
   ) %>% rprint(.decimals = .dec)
   
 ) %>% paste(collapse = sep)
+
+#
+# GIVE FREQUENCY (COLUMN PERCENTAGE) ----
+freqperc <- function(.x, .y, dec) left_join(
+  
+  x = table(.x, .y) %>%
+    as.data.frame() %>%
+    pivot_wider(names_from = .y, values_from = Freq),
+  
+  y = prop.table(table(.x, .y), margin = 2) %>%
+    as.data.frame() %>%
+    mutate( Perc = paste0(rprint(100*Freq, dec),"%") ) %>%
+    select(-Freq) %>%
+    pivot_wider(names_from = .y, values_from = Perc),
+  
+  by     = ".x",
+  suffix = c("_x", "_y")
+  
+) %>%
+  
+  mutate( # .y needs to be treatment in this code
+    `HF-rTMS` = paste0(`HF-rTMS_x`," (",`HF-rTMS_y`,")"),
+    TBS       = paste0( TBS_x     ," (", TBS_y     ,")")
+  ) %>%
+  select( -contains("_") ) %>%
+  rename("Level" = ".x")
 
 #
 # FORMAT TABLE TO APA STYLE ----

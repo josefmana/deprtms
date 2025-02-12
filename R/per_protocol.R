@@ -237,13 +237,13 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels, plt_aov = 2) {
   # return a list with all results
   return(
     list(
-      ANOVA_model = aov,
-      ANOVA_table = aov_tab,
+      ANOVA_model     = aov,
+      ANOVA_table     = aov_tab,
       occas_main_comp = occas_main,  # pairwise comparisons between occasions averaged over levels of treatment
       occas_simp_anov = occas_aov,   # ANOVAs evaluating simple main effects of occasion conditional on the level of treatment
       occas_simp_comp = occas_diffs, # pairwise comparisons between occasions conditional on the level of treatment
       treat_simp_comp = treat_diffs, # pairwise comparisons between treatment levels conditional on the occasion
-      plot = plt
+      plot            = plt
     )
   )
   
@@ -312,8 +312,8 @@ print_ANOVA_table <- function(anovas, labs, tab_no = 1) lapply(
     `F` ~ "{{*F*}}",
     DFn ~ "{{*df*_*n*}}",
     DFd ~ "{{*df*_*d*}}",
-    p ~ "{{*p*}}",
-    q ~ "{{*q*}}",
+    p   ~ "{{*p*}}",
+    q   ~ "{{*q*}}",
     ges ~ "{{:eta:^2}}"
   ) %>%
   tab_source_note(
@@ -513,5 +513,19 @@ print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", ta
   ## return it
   return(tab)
   
-  
 }
+
+#
+# BIG PLOT OF MAIN MEASURES ----
+big_plot <- function(aov) with(
+  
+  aov,
+  (HAMD_tot$plot | HAMA_tot$plot) /
+    (SDS$plot  | BAI$plot) /
+    (QIDS$plot | PSS$plot) +
+    plot_annotation(tag_levels = "A") +
+    plot_layout(guides = "collect") &
+    theme(legend.position = "bottom") &
+    xlab(NULL)
+  
+)
