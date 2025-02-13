@@ -266,7 +266,7 @@ conduct_ANOVA_loop <- function(.data, labs, show_stats = 2) lapply(
 
 #
 # PREPARE A BIG ANOVA TABLE ----
-print_ANOVA_table <- function(anovas, labs, tab_no = 1) lapply(
+print_ANOVA_table <- function(anovas, labs, tit = " ") lapply(
   
   1:nrow(labs), # re-format each ANOVA table and add outcome column to it
   function(y) with(
@@ -301,13 +301,7 @@ print_ANOVA_table <- function(anovas, labs, tab_no = 1) lapply(
   select(y, Effect, `F`, DFn, DFd, p, q, `sig.`, ges) %>%
   
   # do table formatting
-  gt_apa(
-    grp = "y",
-    title = paste0(
-      "<b>Table ", tab_no,
-      "</b><br><i>A series of univariate mixed ANOVAs testing for null effects in a per-protocol analysis.</i>"
-    )
-  ) %>%
+  gt_apa(grp = "y", title = tit) %>%
   cols_label(
     `F` ~ "{{*F*}}",
     DFn ~ "{{*df*_*n*}}",
@@ -326,7 +320,7 @@ print_ANOVA_table <- function(anovas, labs, tab_no = 1) lapply(
 
 #
 # EXTRACT TABLE OF PAIRED COMPARISONS ----
-print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", tab_no = "A1") {
+print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", tit = " ") {
   
   ## ---- prepare a data.frame for later gt() formatting ----
   df <- lapply(
@@ -386,12 +380,7 @@ print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", ta
       relocate(`d_T2-T0`        , .after = `p_T2-T0` ) %>%
       relocate(`magnitude_T2-T0`, .after = `d_T2-T0` ) %>%
       
-      gt_apa(
-        title = paste0(
-          "<b>Table ", tab_no,
-          "</b><br><i>Paired comaparisons regarding main effects of the Occasion variable in a per-protocol analysis.</i>"
-        )
-      ) %>%
+      gt_apa(title = tit) %>%
       
       tab_spanner(columns = ends_with("T1-T0"),  label = "T1-minus-T0", gather = F) %>%
       tab_spanner(columns = ends_with("T2-T0"),  label = "T2-minus-T0", gather = F) %>%
@@ -439,12 +428,7 @@ print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", ta
       relocate(`d_HF-rTMS_T2-T1`        , .after = `p_HF-rTMS_T2-T1` ) %>%
       relocate(`magnitude_HF-rTMS_T2-T1`, .after = `d_HF-rTMS_T2-T1` ) %>%
       
-      gt_apa(
-        title = paste0(
-          "<b>Table ", tab_no,
-          "</b><br><i>Paired comaparisons regarding simple main effects of the Occasion variable in a per-protocol analysis.</i>"
-        )
-      ) %>%
+      gt_apa(title = tit) %>%
       
       tab_spanner(columns = contains("HF-rTMS"), label = "HF-rTMS",     gather = F) %>%
       tab_spanner(columns = contains("TBS"),     label = "TBS",         gather = F) %>%
@@ -476,12 +460,7 @@ print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", ta
       relocate(`magnitude_T1_TBS-HF-rTMS`, .after = `d_T1_TBS-HF-rTMS`  ) %>%
       
       
-      gt_apa(
-        title = paste0(
-          "<b>Table ", tab_no,
-          "</b><br><i>Paired comaparisons regarding simple main effects of the Treatment variable in a per-protocol analysis.</i>"
-        )
-      ) %>%
+      gt_apa(title = tit) %>%
       
       tab_spanner(columns = contains("T0"), label = "T0",     gather = F) %>%
       tab_spanner(columns = contains("T1"), label = "T1",     gather = F) %>%

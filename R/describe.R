@@ -334,3 +334,68 @@ describe_responses <- function(.data, labels, tit = " ") {
     )
   
 }
+
+#
+# RESPONSE/REMISSION PLOTS ----
+plot_responses <- function(.data) {
+  
+  # extract all post- variables of interest and set threshold for remissions
+  pars <-
+    data.frame( y = sub( "_response", "", names(.data)[grepl("response",names(.data))] ) ) %>%
+    mutate(
+      y0 = sub("T1|T2", "T0", y),
+      threshold = case_when(
+        grepl("SDS", y)  ~ 49,
+        grepl("PSS", y)  ~ 13,
+        grepl("BAI", y)  ~  7,
+        grepl("QIDS", y) ~  5,
+        grepl("HAMA", y) ~ 17,
+        grepl("HAMD", y) ~  7
+      )
+    )
+  
+  # do (all) the plotting
+  plts <- lapply(
+    
+    set_names(x = 1:nrow(pars), nm = pars$y),
+    function(i) .data %>%
+      
+      ggplot() +
+      aes(x = get(pars$y0[i]), y = get(pars$y[i]), colour = treatment) +
+      labs(x = pars$y0[i], y = pars$y[i]) +
+      geom_point(size = 2.33) +
+      geom_abline(intercept = .5, slope = .5, colour = "black", linewidth = .8) +
+      geom_abline(intercept = .5, slope = 1 , colour = "black", linewidth = .8, linetype = "dotted") +
+      geom_abline(intercept = pars$threshold[i] + .5, slope = 0 , colour = "red4", linewidth = .7, linetype = "dashed") +
+      theme_minimal(base_size = 12) +
+      scale_colour_manual( values = c("#64CDCC","#F9A729") )
+    
+  )
+  
+  # set-up 'depression' & 'anxiety' big plots
+  fig <- with(
+    
+    plts, list(
+      
+      # depression
+      depression =
+        (HAMD_tot_T1 | HAMD_tot_T2) / (SDS_T1 | SDS_T2) / (QIDS_T1 | QIDS_T2) +
+        plot_annotation(tag_levels = "A") +
+        plot_layout(guides = "collect") &
+        theme(legend.position = "bottom"),
+
+      # anxiety/stress
+      anxiety =
+        (HAMA_tot_T1 | HAMA_tot_T2) / (BAI_T1 | BAI_T2) / (PSS_T1 | PSS_T2) +
+        plot_annotation(tag_levels = "A") +
+        plot_layout(guides = "collect") &
+        theme(legend.position = "bottom")
+
+    )
+  )
+  
+  # finish it
+  return(fig)
+  
+}
+

@@ -78,11 +78,22 @@ list(
   ## DESCRIPTION OF THE SAMPLE ----
   tar_target(
     name    = sample_description, # prepare a table with demographics
-    command = decribe_demographics(.data = data_wide, tit = "<b>Table 1<br>Subject demographics.</b> Demographics for the two groups after randomization.")
+    command = decribe_demographics(
+      .data = data_wide,
+      tit   = "<b>Table 1<br>Subject demographics.</b> Demographics for the two groups after randomization."
+    )
   ),
   tar_target(
-    name    = response_rates, # prepare a table with demographics
-    command = describe_responses(.data = data_wide, labels = outcomes, tit = "<b>Table A1<br>Response and remission rates.</b> Frequency and rate of subjects' response and remissions per group.")
+    name    = response_rates, # prepare a table with reponse/remission rates
+    command = describe_responses(
+      .data  = data_wide,
+      labels = outcomes,
+      tit    = "<b>Table 2<br>Response and remission rates.</b> Frequency and rate of subjects' response and remissions per group."
+    )
+  ),
+  tar_target(
+    name    = response_plots, # plot 
+    command = plot_responses(.data = data_wide)
   ),
   
   ## PER PROTOCOL ANALYSIS ----
@@ -96,19 +107,41 @@ list(
   ),
   tar_target(
     name    = per_protocol_ANOVA_table, # extract a big (set of) ANOVAs table(s)
-    command = print_ANOVA_table(anovas = per_protocol_ANOVAs, labs = outcomes, tab_no = 1)
+    command = print_ANOVA_table(
+      anovas = per_protocol_ANOVAs,
+      labs   = outcomes,
+      tit   = "<b>Table 3<br>Analyses of variance.</b> A series of univariate mixed ANOVAs testing for null effects in a per-protocol analysis."
+    )
   ),
   tar_target(
     name    = per_protocol_pairwise_occasion_main, # pairwise comparisons for Occasion main effects
-    command = print_paired_comparisons(comps = per_protocol_ANOVAs, labs = outcomes, x = "occas", type = "main", tab_no = "A2")
+    command = print_paired_comparisons(
+      comps = per_protocol_ANOVAs,
+      labs  = outcomes,
+      x     = "occas",
+      type  = "main",
+      tit   = "<b>Table 4<br>Paired comaparisons.</b> Main effects of the Occasion variable in a per-protocol analysis."
+    )
   ),
   tar_target(
     name    = per_protocol_pairwise_occasion_simple, # pairwise comparisons for Occasion simple main effects
-    command = print_paired_comparisons(comps = per_protocol_ANOVAs, labs = outcomes, x = "occas", type = "simp", tab_no = "A3")
+    command = print_paired_comparisons(
+      comps = per_protocol_ANOVAs,
+      labs  = outcomes,
+      x     = "occas",
+      type  = "simp",
+      tit   = "<b>Table 5<br>Paired comaparisons.</b> Simple main effects of the Occasion variable in a per-protocol analysis."
+    )
   ),
   tar_target(
     name    = per_protocol_pairwise_treatment_simple, # pairwise comparisons for Treatment simple main effects
-    command = print_paired_comparisons(comps = per_protocol_ANOVAs, labs = outcomes, x = "treat", type = "simp", tab_no = "A4")
+    command = print_paired_comparisons(
+      comps = per_protocol_ANOVAs,
+      labs  = outcomes,
+      x     = "treat",
+      type  = "simp",
+      tit   = "<b>Table 6<br>Paired comaparisons.</b> Simple main effects of the Treatment variable in a per-protocol analysis."
+    )
   ),
   tar_target(
     name    = per_protocol_figure, # figure including the primary outcomes
