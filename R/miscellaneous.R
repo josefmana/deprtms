@@ -4,6 +4,10 @@
 #
 
 #
+# PREPARE A FOLDER ----
+new_folder <- function(name) if (!dir.exists(name)) dir.create(name)
+
+#
 # PRINT ROUNDED NUMBER ----
 rprint <- function(.x, .decimals = 2) sprintf( paste0("%.",.decimals,"f"), round(.x, .decimals) )
 
@@ -189,3 +193,55 @@ list_outcomes <- function() data.frame(
     rep("self", 3) # BAI, PSS & Chronotype Inventory
   )
 )
+
+#
+# PRE-ALLOCATE TABLE NAMES ----
+tabs_struct <- function() data.frame(
+  
+  tar  = c(
+    "sample_description",
+    "response_rates",
+    "per_protocol_descriptives",
+    "per_protocol_ANOVA_table",
+    "per_protocol_pairwise_occasion_main",
+    "per_protocol_pairwise_occasion_simple",
+    "per_protocol_pairwise_treatment_simple",
+    "intetion_to_treat_descriptives"
+    
+  ),
+  path = paste0(
+    "_tables/", c(
+      "sample_description",
+      "responses_remissions",
+      "per_protocol_descriptives",
+      "per_protocol_ANOVAs",
+      "per_protocol_PWCs_occasion_main",
+      "per_protocol_PWCs_occasion_simple_main",
+      "per_protocol_PWCs_treatment_simple_main",
+      "intetion_to_treat_descriptives"
+    )
+  )
+  
+)
+
+#
+# SAVE TABLES ----
+save_tables <- function(struct) {
+  
+  # prepare a folder if it does not exist yet
+  new_folder("_tables")
+  
+  # loop through tables and save them
+  lapply(
+    1:nrow(struct),
+    function(i) with(
+      
+      struct, {
+        print(i)
+        gt::gtsave( tar_read_raw(tar[i]), paste0(path[i],".html") )
+        gt::gtsave( tar_read_raw(tar[i]), paste0(path[i],".docx") )
+      }
+    )
+  )
+  
+}
