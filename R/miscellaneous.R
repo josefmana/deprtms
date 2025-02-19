@@ -206,7 +206,11 @@ tabs_struct <- function() data.frame(
     "per_protocol_pairwise_occasion_main",
     "per_protocol_pairwise_occasion_simple",
     "per_protocol_pairwise_treatment_simple",
-    "intetion_to_treat_descriptives"
+    "intetion_to_treat_descriptives",
+    "intention_to_treat_ANOVA_table",
+    "intention_to_treat_pwc_occasion_main",
+    "intention_to_treat_pwc_occasion_simple",
+    "intention_to_treat_pwc_treatment_simple"
     
   ),
   path = paste0(
@@ -218,7 +222,11 @@ tabs_struct <- function() data.frame(
       "per_protocol_PWCs_occasion_main",
       "per_protocol_PWCs_occasion_simple_main",
       "per_protocol_PWCs_treatment_simple_main",
-      "intetion_to_treat_descriptives"
+      "intetion_to_treat_descriptives",
+      "intention_to_treat_ANOVAs",
+      "intention_to_treat_PWCs_occasion_main",
+      "intention_to_treat_PWCs_occasion_simple_main",
+      "intention_to_treat_PWCs_treatment_simple_main"
     )
   )
   
