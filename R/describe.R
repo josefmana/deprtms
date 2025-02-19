@@ -373,7 +373,7 @@ plot_responses <- function(.data) {
   )
   
   # set-up 'depression' & 'anxiety' big plots
-  fig <- with(
+  with(
     
     plts, list(
       
@@ -393,9 +393,6 @@ plot_responses <- function(.data) {
 
     )
   )
-  
-  # finish it
-  return(fig)
   
 }
 

@@ -323,7 +323,7 @@ print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", ti
   ## ---- prepare a data.frame for later gt() formatting ----
   df <- lapply(
     
-    1:nrow(labs), # re-format each paired comparions table and add outcome column to it
+    1:nrow(labs), # re-format each paired comparisons table and add outcome column to it
     function(y) with(
       
       labs,
@@ -476,19 +476,16 @@ print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", ti
   }
   
   ## ---- finish it ----
-  tab <-
-    tab %>%
-    tab_source_note(
-      source_note = md("HAMA: Hamilton's Depression Inventory; SDS: Self-rating Depression Scale, QIDS:
+  tab %>% tab_source_note(
+    
+    source_note = md("HAMA: Hamilton's Depression Inventory; SDS: Self-rating Depression Scale, QIDS:
       Quick Inventory of Depressive Symptomatology; HAMA: Hamilton's Anxiety Inventory, BAI: Beck's 
       Anxiety Scale; PSS: Perceived Stress Scale; HF-rTMS: high frequency repetitive transcranial magnetic
       stimulation; TBS: intermittent theta burst stimulation; *t*: test statistic; df: degrees of freedom;
       *p*: unadjusted p-value; *d*: Cohen's d with Hedges correction with its 95% confidence interval;
       ES: verbal classification of the effect size point estimate.")
-    )
-
-  ## return it
-  return(tab)
+    
+  )
   
 }
 

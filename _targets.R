@@ -163,6 +163,44 @@ list(
   tar_target(
     name    = intention_to_treat_LMERs, # LMMs as the first approximation intention to treat analysis
     command = conduct_LMER_loop(data = data_lmer, labs = outcomes)
+  ),
+  tar_target(
+    name    = intention_to_treat_ANOVA_table, # extract a big (set of) ANOVA table(s)
+    command = print_lmer_ANOVA(
+      lmers = intention_to_treat_LMERs,
+      labs  = outcomes,
+      tit   = "<b>Table 7<br>Analyses of variance.</b> A series of univariate ANOVAs testing for null effects in an intention-to-treat analysis."
+    )
+  ),
+  tar_target(
+    name    = intention_to_treat_pwc_occasion_main, # pairwise comparisons for Occasion main effects
+    command = print_lmer_pwc(
+      comps = intention_to_treat_LMERs,
+      labs  = outcomes,
+      x     = "occas",
+      type  = "main",
+      tit   = "<b>Table 8<br>Paired comaparisons.</b> Main effects of the Occasion variable in an intention-to-treat analysis."
+    )
+  ),
+  tar_target(
+    name    = intention_to_treat_pwc_occasion_simple, # pairwise comparisons for Occasion simple main effects
+    command = print_lmer_pwc(
+      comps = intention_to_treat_LMERs,
+      labs  = outcomes,
+      x     = "occas",
+      type  = "simp",
+      tit   = "<b>Table 9<br>Paired comaparisons.</b> Simple main effects of the Occasion variable in an intention-to-treat analysis."
+    )
+  ),
+  tar_target(
+    name    = intention_to_treat_pwc_treatment_simple, # pairwise comparisons for Treatment simple main effects
+    command = print_lmer_pwc(
+      comps = intention_to_treat_LMERs,
+      labs  = outcomes,
+      x     = "treat",
+      type  = "simp",
+      tit   = "<b>Table 10<br>Paired comaparisons.</b> Simple main effects of the Treatment variable in an intention-to-treat analysis."
+    )
   )
   
 )
