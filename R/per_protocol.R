@@ -235,16 +235,14 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels, plt_aov = 2) {
     labs( subtitle = get_test_label(aov, row = plt_aov, detailed = T, type = "expression") )
   
   # return a list with all results
-  return(
-    list(
-      ANOVA_model     = aov,
-      ANOVA_table     = aov_tab,
-      occas_main_comp = occas_main,  # pairwise comparisons between occasions averaged over levels of treatment
-      occas_simp_anov = occas_aov,   # ANOVAs evaluating simple main effects of occasion conditional on the level of treatment
-      occas_simp_comp = occas_diffs, # pairwise comparisons between occasions conditional on the level of treatment
-      treat_simp_comp = treat_diffs, # pairwise comparisons between treatment levels conditional on the occasion
-      plot            = plt
-    )
+  list(
+    ANOVA_model     = aov,
+    ANOVA_table     = aov_tab,
+    occas_main_comp = occas_main,  # pairwise comparisons between occasions averaged over levels of treatment
+    occas_simp_anov = occas_aov,   # ANOVAs evaluating simple main effects of occasion conditional on the level of treatment
+    occas_simp_comp = occas_diffs, # pairwise comparisons between occasions conditional on the level of treatment
+    treat_simp_comp = treat_diffs, # pairwise comparisons between treatment levels conditional on the occasion
+    plot            = plt
   )
   
 }

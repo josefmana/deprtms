@@ -9,18 +9,21 @@ library(tarchetypes)
 # Set target options:
 tar_option_set( packages = c(
   
-  "here",      # for path listing
-  "tidyverse", # for data wrangling
-  "readxl",    # for reading Excel
-  "ggdag",     # for DAG drawing
-  "ggraph",    # for advanced DAG/ggplot operations
-  "gt",        # for nice tables
-  "ggpubr",    # for easier time with boxplots
-  "patchwork", # for putting plots together
-  "rstatix",   # for repeated measures ANOVAs
-  "patchwork", # for arranging plots
-  "lmerTest",  # for frequentist LMMs
-  "rstanarm"   # for Bayesian LMMs
+  "here",       # for path listing
+  "tidyverse",  # for data wrangling
+  "readxl",     # for reading Excel
+  "ggdag",      # for DAG drawing
+  "ggraph",     # for advanced DAG/ggplot operations
+  "gt",         # for nice tables
+  "ggpubr",     # for easier time with boxplots
+  "patchwork",  # for putting plots together
+  "rstatix",    # for repeated measures ANOVAs
+  "patchwork",  # for arranging plots
+  "lmerTest",   # for frequentist LMMs
+  "rstanarm",   # for Bayesian LMMs
+  "emmeans",    # for marginal means and contrast of frequentist LMMs
+  "bayestestR", # for contrasts
+  "performance" # for model diagnostics
   #"ggtext" # for adding text to plots
   
 ) )
@@ -71,8 +74,12 @@ list(
     command = import_data(file = data_file, format = "longer")
   ),
   tar_target(
-    name    = outcomes, # table containing labelling conventions regarding outcomes 
+    name    = outcomes, # table containing labeling conventions regarding outcomes 
     command = list_outcomes()
+  ),
+  tar_target(
+    name    = data_lmer, # data formatted for linear mixed-effects regressions
+    command = prepare_LMM_data(d0 = data_half)
   ),
   
   ## DESCRIPTION OF THE SAMPLE ----
@@ -110,7 +117,7 @@ list(
     command = print_ANOVA_table(
       anovas = per_protocol_ANOVAs,
       labs   = outcomes,
-      tit   = "<b>Table 3<br>Analyses of variance.</b> A series of univariate mixed ANOVAs testing for null effects in a per-protocol analysis."
+      tit    = "<b>Table 3<br>Analyses of variance.</b> A series of univariate mixed ANOVAs testing for null effects in a per-protocol analysis."
     )
   ),
   tar_target(
@@ -152,6 +159,10 @@ list(
   tar_target(
     name    = intetion_to_treat_descriptives, # descriptive table for the intention-to-treat analysis
     command = describe_outcomes(.data = data_long, include = c(0,1), decs = 2)
+  ),
+  tar_target(
+    name    = intention_to_treat_LMERs, # LMMs as the first approximation intention to treat analysis
+    command = conduct_LMER_loop(data = data_lmer, labs = outcomes)
   )
   
 )
