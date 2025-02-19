@@ -1,5 +1,5 @@
 #
-# This is a script running targets pipeline of the rTMS clinical trial for depression project.
+# This is a script defining targets pipeline of the rTMS clinical trial for depression project.
 #
 
 # Load packages required to define the pipeline:
@@ -99,7 +99,12 @@ list(
   ## PER PROTOCOL ANALYSIS ----
   tar_target(
     name    = per_protocol_descriptives, # descriptive table for the per protocol analysiss
-    command = describe_outcomes(.data = data_long, include = 1, decs = 2)
+    command = describe_outcomes(
+      .data   = data_long,
+      include = 1,
+      decs    = 2,
+      tit     = "<b>Table 3<br>Outcomes description.</b> Outcomes' descriptive statistics for the per protocol analysis for the two groups after randomization."
+    )
   ),
   tar_target(
     name    = per_protocol_ANOVAs, # mixed ANOVAs as the first approximation per protocol analysis
@@ -110,7 +115,7 @@ list(
     command = print_ANOVA_table(
       anovas = per_protocol_ANOVAs,
       labs   = outcomes,
-      tit   = "<b>Table 3<br>Analyses of variance.</b> A series of univariate mixed ANOVAs testing for null effects in a per-protocol analysis."
+      tit   = "<b>Table 4<br>Analyses of variance.</b> A series of univariate mixed ANOVAs testing for null effects in a per-protocol analysis."
     )
   ),
   tar_target(
@@ -120,7 +125,7 @@ list(
       labs  = outcomes,
       x     = "occas",
       type  = "main",
-      tit   = "<b>Table 4<br>Paired comaparisons.</b> Main effects of the Occasion variable in a per-protocol analysis."
+      tit   = "<b>Table 5<br>Paired comaparisons.</b> Main effects of the Occasion variable in a per-protocol analysis."
     )
   ),
   tar_target(
@@ -130,7 +135,7 @@ list(
       labs  = outcomes,
       x     = "occas",
       type  = "simp",
-      tit   = "<b>Table 5<br>Paired comaparisons.</b> Simple main effects of the Occasion variable in a per-protocol analysis."
+      tit   = "<b>Table 6<br>Paired comaparisons.</b> Simple main effects of the Occasion variable in a per-protocol analysis."
     )
   ),
   tar_target(
@@ -140,7 +145,7 @@ list(
       labs  = outcomes,
       x     = "treat",
       type  = "simp",
-      tit   = "<b>Table 6<br>Paired comaparisons.</b> Simple main effects of the Treatment variable in a per-protocol analysis."
+      tit   = "<b>Table 7<br>Paired comaparisons.</b> Simple main effects of the Treatment variable in a per-protocol analysis."
     )
   ),
   tar_target(
@@ -151,7 +156,19 @@ list(
   ## INTENTION-TO-TREAT ANALYSIS ----
   tar_target(
     name    = intetion_to_treat_descriptives, # descriptive table for the intention-to-treat analysis
-    command = describe_outcomes(.data = data_long, include = c(0,1), decs = 2)
+    command = describe_outcomes(
+      .data   = data_long,
+      include = c(0,1),
+      decs    = 2,
+      tit     = "<b>Table 8<br>Outcomes description.</b> Outcomes' descriptive statistics for the intention-to-treat analysis for the two groups after randomization."
+    )
+  ),
+  
+  ## STRUCTURE FOR SAVING THE OUTCOMES ----
+  tar_target(
+    name    = tables_structure, # structure for saving tables
+    command = tabs_struct()
   )
   
 )
+
