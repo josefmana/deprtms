@@ -1,0 +1,25 @@
+---
+title: "RCT HF vs. iTBS"
+subtitle: "Meths & Stats"
+author: "Josef Mana"
+format: pdf
+bibliography: references.bib
+csl: apa.csl
+echo: false
+warning: false
+---
+
+```{r}
+#| label: envir
+
+library(targets)
+library(here)
+library(tidyverse)
+
+```
+
+# Methods
+
+## Data analysis
+
+All baseline demographic and clinical variables were described as means ± standard deviations if continuous and as group-specific frequencies if categorical. A series of independent samples t tests with Welch's approximation to the degrees of freedom was used to test the hypothesis of zero between-group difference in means of continuous variables (age, years of education and device energy). A series of Pearson's $\chi^2$ test was used to test the hypothesis that randomization group and each categorical variable (sex, diagnosis, study completion, termination phase and medication types) are independent of each other. The primary analysis was a per-protocol analysis including participants who finished the study protocol in full including 

@@ -24,7 +24,6 @@ tar_option_set( packages = c(
   "emmeans",    # for marginal means and contrast of frequentist LMMs
   "bayestestR", # for contrasts
   "performance" # for model diagnostics
-  #"ggtext" # for adding text to plots
   
 ) )
 
