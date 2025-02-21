@@ -161,7 +161,7 @@ list(
   
   ## INTENTION-TO-TREAT ANALYSIS ----
   tar_target(
-    name    = intetion_to_treat_descriptives, # descriptive table for the intention-to-treat analysis
+    name    = intention_to_treat_descriptives, # descriptive table for the intention-to-treat analysis
     command = describe_outcomes(
       .data   = data_long,
       include = c(0,1),
@@ -216,6 +216,13 @@ list(
   tar_target(
     name    = tables_structure, # structure for saving tables
     command = tabs_struct()
+  ),
+  
+  ## REPORT ----
+  tar_quarto(
+    name  = report, # render a Quarto report
+    path  = "report.qmd",
+    quiet = F
   )
   
 )

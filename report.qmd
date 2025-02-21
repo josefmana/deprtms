@@ -2,7 +2,7 @@
 title: "RCT HF vs. iTBS"
 subtitle: "Meths & Stats"
 author: "Josef Mana"
-format: pdf
+format: html
 bibliography: references.bib
 csl: apa.csl
 echo: false
@@ -15,6 +15,42 @@ warning: false
 library(targets)
 library(here)
 library(tidyverse)
+library(english)
+library(gt)
+
+tar_source()
+
+d0  <- tar_read(data_wide)
+
+# Number of participants:
+N   <- c(
+  total     = nrow(d0),
+  TBS       = nrow(subset(d0, treatment == "TBS")),
+  `HF-rTMS` = nrow(subset(d0, treatment == "HF-rTMS"))
+)
+
+# Age of participants:
+age <- cbind(
+  total     = c(M = rprint(mean(d0$age), 2), range = paste(range(d0$age), collapse = "-")),
+  TBS       = c(M = rprint(mean(subset(d0, treatment == "TBS")$age), 2), range = paste(range(subset(d0, treatment == "TBS")$age), collapse = "-")
+      ),
+  `HF-rTMS` = c(M = rprint(mean(subset(d0, treatment == "HF-rTMS")$age), 2), range = paste(range(subset(d0, treatment == "HF-rTMS")$age), collapse = "-")
+      )
+  )
+
+# Percentage of females:
+fem <- cbind(
+  total     = paste0(rprint(100 * (table(d0$sex) |> prop.table()), 0), "%")[1],
+  TBS       = paste0(rprint(100 * (table(subset(d0, treatment == "TBS")$sex) |> prop.table()), 0), "%")[1],
+  `HF-rTMS` = paste0(rprint(100 * (table(subset(d0, treatment == "HF-rTMS")$sex) |> prop.table()), 0), "%")[1]
+)
+
+# Capitalize the first letter:
+# (from https://stackoverflow.com/a/18509816) 
+firstup <- function(x) {
+  substr(x, 1, 1) <- toupper(substr(x, 1, 1))
+  x
+}
 
 ```
 
@@ -22,4 +58,46 @@ library(tidyverse)
 
 ## Data analysis
 
-All baseline demographic and clinical variables were described as means ± standard deviations if continuous and as group-specific frequencies if categorical. A series of independent samples t tests with Welch's approximation to the degrees of freedom was used to test the hypothesis of zero between-group difference in means of continuous variables (age, years of education and device energy). A series of Pearson's $\chi^2$ test was used to test the hypothesis that randomization group and each categorical variable (sex, diagnosis, study completion, termination phase and medication types) are independent of each other. The primary analysis was a per-protocol analysis including participants who finished the study protocol in full including 
+
+All baseline demographic and clinical variables were described as means ± standard deviations if continuous (age, years of education and device energy) and as group-specific frequencies if categorical (sex, diagnosis, study completion, termination phase and medication types). A series of independent samples t tests with Welch's approximation to the degrees of freedom was used to test the hypothesis of zero between-group difference in means of continuous variables. A series of Pearson's $\chi^2$ test was used to test the hypothesis that randomization group and each categorical variable are stochastically independent of each other. The primary analysis was a per-protocol analysis that included participants who finished the study protocol in full including complete data in all outcome measures. Per-protocol average treatment effect (ATE) and its difference between randomization groups was estimated using a series of mixed ANOVAs with each outcome measure regressed on randomization group as a between-subject factor, timepoint as a within-subject factor and their interaction. Decision about rejection of a hypothesis of zero mean difference with respect to eeach of these terms was based on an an F test p-value of which was adjusted by Benjamini-Hochberg procedure [@Benjamini2001] for 5% false discovery rate (FDR) across all outcomes of interest. Thus effects associated with terms with adjusted p-value (i.e., the q-value) less than .05 were considered statistically significantly different from zero. This analysis was followed by inspection of pairwise comparisons between timepoints averaged over randomization groups (the main effect of timepoint) and conditional on randomization group (the simple main effect timepoint) as well as between randomization groups conditional on timepoint (the simple main effect of randomization group). Furthermore, response and remission rates were calculated for timepoints T1 and T2 and the hypothesis that randomization group and response/remission rate are stochastically independent were tested via Pearson's $\chi^2$ tests separately for each timepoint. Finally, a modified intention-to-treat analysis was conducted on the full sample using a set of linear mixed effects models whereby each outcome measure was regressed on randomization group, timepoint and their interaction on group level (the "fixed effects"), and subject-specific intercepts on subject level (the "random effects"). Results of these models were then analysed using set of ANOVAs and pairwise comparisons analogous to the per-protocol analysis. All analyses were conducted in R version `r with( version, paste(major,minor,sep=".") )` using package "rstatix" for mixed ANOVAs and "lmer4" with "lmerTest" for mixed effect models [@rsoft; @Kassambara2023; @Bates2015; @Kuznetsova2017]. Computer code to produce presented results is available at [https://github.com/josefmana/deprtms.git](https://github.com/josefmana/deprtms.git).
+
+# Results
+
+## Participant demographics
+
+`r english(N["total"]) |> as.character() |> firstup()` were randomized (mean age = `r age["M", "total"]`; range = `r age["range", "total"]`; `r fem[1, "total"]` females; n = `r N["TBS"]` in TBS group; n = `r N["HF-rTMS"]` in the HF-rTMS group). Baseline demographics are presented in @tbl-demo. We did not detect any statistically significant difference between randomization group in demographic variables, clinical variables, completion rates or termination phase.
+
+```{r}
+#| label: tbl-demo
+#| tbl-cap: ""
+
+tar_read(sample_description)
+
+```
+
+## Depression outcomes
+
+The outcome variables are summarized in @tbl-desc-pp for the sample used in the per-protocol analysis and @tbl-desc-itt for the full sample.
+
+```{r}
+#| label: tbl-desc-pp
+#| tbl-cap: ""
+
+tar_read(per_protocol_descriptives)
+
+```
+
+
+## Anxiety outcomes
+
+# Suplementary data
+
+```{r}
+#| label: tbl-desc-itt
+#| tbl-cap: ""
+
+tar_read(intention_to_treat_descriptives)
+
+```
+
+# References

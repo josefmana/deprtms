@@ -206,7 +206,7 @@ tabs_struct <- function() data.frame(
     "per_protocol_pairwise_occasion_main",
     "per_protocol_pairwise_occasion_simple",
     "per_protocol_pairwise_treatment_simple",
-    "intetion_to_treat_descriptives",
+    "intention_to_treat_descriptives",
     "intention_to_treat_ANOVA_table",
     "intention_to_treat_pwc_occasion_main",
     "intention_to_treat_pwc_occasion_simple",
@@ -240,16 +240,13 @@ save_tables <- function(struct) {
   new_folder("_tables")
   
   # loop through tables and save them
-  lapply(
-    1:nrow(struct),
-    function(i) with(
-      
-      struct, {
-        print(i)
-        gt::gtsave( tar_read_raw(tar[i]), paste0(path[i],".html") )
-        gt::gtsave( tar_read_raw(tar[i]), paste0(path[i],".docx") )
-      }
-    )
+  for (i in seq_len(nrow(struct))) with(
+    
+    struct, {
+      cat(paste0("Writing ",path[i], " ... \n"))
+      gt::gtsave( tar_read_raw(tar[i]), paste0(path[i],".html") )
+      gt::gtsave( tar_read_raw(tar[i]), paste0(path[i],".docx") )
+    }
   )
   
 }
