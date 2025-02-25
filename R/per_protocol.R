@@ -191,8 +191,8 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels, plt_aov = 2) {
     geom_boxplot( # boxplot to represent summaries of the data
       alpha = .5,
       position = position_dodge(.6),
-      linewidth = .8,
-      outlier.size = 4,
+      linewidth = .5,
+      outlier.size = 2,
       notch = T,
       width = .25
     ) +
@@ -201,7 +201,7 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels, plt_aov = 2) {
       data = sum_stats,
       aes(x = Occasion, y = M, group = `Treatment:`),
       colour = "red3",
-      size = 5,
+      size = 2.5,
       position = position_dodge(.6)
     ) +
     
@@ -209,7 +209,7 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels, plt_aov = 2) {
       data = sum_stats,
       aes(x = Occasion, y = M, ymin = conf.low, ymax = conf.high, group = `Treatment:`),
       colour = "red3",
-      linewidth = 1,
+      linewidth = .5,
       position = position_dodge(.6)
     ) +
     
@@ -217,7 +217,7 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels, plt_aov = 2) {
       data = sum_stats,
       aes(x = Occasion, y = M, linetype = `Treatment:`, group = `Treatment:`),
       colour = "red3",
-      linewidth = .8,
+      linewidth = .4,
       position = position_dodge(.6)
     ) +
     
@@ -225,7 +225,7 @@ conduct_mixed_ANOVA <- function(.data, outcome, labels, plt_aov = 2) {
     labs(y = subset(labels, var == outcome)$sub_abre) +
     scale_fill_manual( values = c("#64CDCC","#F9A729") ) +
     scale_colour_manual( values = c("#64CDCC","#F9A729") ) +
-    theme_bw(base_size = 16) +
+    theme_bw(base_size = 8) +
     theme(legend.position = "bottom")
   
   # add labels regarding effects to the plot if called for

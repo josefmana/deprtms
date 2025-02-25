@@ -7,8 +7,8 @@ library(targets)
 library(tarchetypes)
 
 # Run the pipeline:
-tar_make()
 tar_source()
+tar_make()
 
 # Save the outcomes:
 save_tables(struct = tar_read(tables_structure))

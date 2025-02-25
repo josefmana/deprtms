@@ -94,7 +94,7 @@ list(
     command = describe_responses(
       .data  = data_wide,
       labels = outcomes,
-      tit    = "<b>Table 2<br>Response and remission rates.</b> Frequency and rate of subjects' response and remissions per group."
+      tit    = "<b>Table 4<br>Response and remission rates.</b> Frequency and rate of subjects' response and remissions per group."
     )
   ),
   tar_target(
@@ -109,7 +109,7 @@ list(
       .data   = data_long,
       include = 1,
       decs    = 2,
-      tit     = "<b>Table 3<br>Outcomes description.</b> Outcomes' descriptive statistics for the per protocol analysis for the two groups after randomization."
+      tit     = "<b>Table 2<br>Outcomes description.</b> Outcomes' descriptive statistics for the per protocol analysis for the two groups after randomization."
     )
   ),
   tar_target(
@@ -121,7 +121,7 @@ list(
     command = print_ANOVA_table(
       anovas = per_protocol_ANOVAs,
       labs   = outcomes,
-      tit   = "<b>Table 4<br>Analyses of variance.</b> A series of univariate mixed ANOVAs testing for null effects in a per-protocol analysis."
+      tit   = "<b>Table 3<br>Analyses of variance.</b> A series of univariate mixed ANOVAs testing for null effects in a per-protocol analysis."
     )
   ),
   tar_target(
@@ -131,7 +131,7 @@ list(
       labs  = outcomes,
       x     = "occas",
       type  = "main",
-      tit   = "<b>Table 5<br>Paired comaparisons.</b> Main effects of the Occasion variable in a per-protocol analysis."
+      tit   = "<b>Table 6<br>Paired comparisons.</b> Main effects of the Occasion variable in a per-protocol analysis."
     )
   ),
   tar_target(
@@ -141,7 +141,7 @@ list(
       labs  = outcomes,
       x     = "occas",
       type  = "simp",
-      tit   = "<b>Table 6<br>Paired comaparisons.</b> Simple main effects of the Occasion variable in a per-protocol analysis."
+      tit   = "<b>Table 7<br>Paired comparisons.</b> Simple main effects of the Occasion variable in a per-protocol analysis."
     )
   ),
   tar_target(
@@ -151,7 +151,7 @@ list(
       labs  = outcomes,
       x     = "treat",
       type  = "simp",
-      tit   = "<b>Table 7<br>Paired comaparisons.</b> Simple main effects of the Treatment variable in a per-protocol analysis."
+      tit   = "<b>Table 8<br>Paired comparisons.</b> Simple main effects of the Treatment variable in a per-protocol analysis."
     )
   ),
   tar_target(
@@ -188,7 +188,7 @@ list(
       labs  = outcomes,
       x     = "occas",
       type  = "main",
-      tit   = "<b>Table 10<br>Paired comaparisons.</b> Main effects of the Occasion variable in an intention-to-treat analysis."
+      tit   = "<b>Table 10<br>Paired comparisons.</b> Main effects of the Occasion variable in an intention-to-treat analysis."
     )
   ),
   tar_target(
@@ -198,7 +198,7 @@ list(
       labs  = outcomes,
       x     = "occas",
       type  = "simp",
-      tit   = "<b>Table 11<br>Paired comaparisons.</b> Simple main effects of the Occasion variable in an intention-to-treat analysis."
+      tit   = "<b>Table 11<br>Paired comparisons.</b> Simple main effects of the Occasion variable in an intention-to-treat analysis."
     )
   ),
   tar_target(
@@ -208,7 +208,7 @@ list(
       labs  = outcomes,
       x     = "treat",
       type  = "simp",
-      tit   = "<b>Table 12<br>Paired comaparisons.</b> Simple main effects of the Treatment variable in an intention-to-treat analysis."
+      tit   = "<b>Table 12<br>Paired comparisons.</b> Simple main effects of the Treatment variable in an intention-to-treat analysis."
     )
   ),
   
