@@ -104,7 +104,7 @@ list(
   
   ## PER PROTOCOL ANALYSIS ----
   tar_target(
-    name    = per_protocol_descriptives, # descriptive table for the per protocol analysiss
+    name    = per_protocol_descriptives, # descriptive table for the per protocol analysis
     command = describe_outcomes(
       .data   = data_long,
       include = 1,

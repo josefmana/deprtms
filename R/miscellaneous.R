@@ -1,5 +1,5 @@
 #
-# This is a script used to define more generalised functions to be used
+# This is a script used to define more general functions to be used
 # at various points through the processing pipeline.
 #
 
@@ -60,7 +60,7 @@ freqperc <- function(.x, .y, dec) left_join(
   
   mutate( # .y needs to be treatment in this code
     `HF-rTMS` = paste0(`HF-rTMS_x`," (",`HF-rTMS_y`,")"),
-    TBS       = paste0( TBS_x     ," (", TBS_y     ,")")
+    iTBS      = paste0(iTBS_x     ," (", iTBS_y    ,")")
   ) %>%
   select( -contains("_") ) %>%
   rename("Level" = ".x")
@@ -110,33 +110,40 @@ gt_apa <- function(x, grp = NULL, nms = NULL, title = " ") x %>%
 list_outcomes <- function() data.frame(
   
   var = c( # variable name in the half-long data format
-    paste0( "HAMD_", c("tot","anxF1","weightF2","thoughtF3","circF4","retarF5","sleepF6") ),
+    
     "SDS",
     "QIDS",
-    paste0( "HAMA_", c("tot","somF1","psychF2") ),
     "BAI",
     "PSS",
-    "Chron"
+    "Chron",
+    paste0( "HAMD_", c("tot","anxF1","weightF2","thoughtF3","circF4","retarF5","sleepF6") ),
+    paste0( "HAMA_", c("tot","somF1","psychF2") )
   ),
   scl_long = c( # long form of scale's name
-    rep("Hamilton's Depression Inventory", 7),
+    
     "Self-rating Depression Scale",
     "Quick Inventory of Depressive Symptomatology",
-    rep("Hamilton's Anxiety Inventory", 3),
     "Beck's Anxiety Scale",
     "Perceived Stress Scale",
-    "Chronotype Inventory"
+    "Chronotype Inventory",
+    rep("Hamilton's Depression Inventory", 7),
+    rep("Hamilton's Anxiety Inventory", 3)
   ),
   scl_abre = c( # abbreviation of scale's name
-    rep("HAMD", 7),
     "SDS",
     "QIDS",
-    rep("HAMA", 3),
     "BAI",
     "PSS",
-    "Chronotype"
+    "Chronotype",
+    rep("HAMD", 7),
+    rep("HAMA", 3)
   ),
   sub_long = c( # long form of subscale's label
+    "Self-rating Depression Scale",
+    "Quick Inventory of Depressive Symptomatology",
+    "Beck's Anxiety Scale",
+    "Perceived Stress Scale",
+    "Chronotype Inventory",
     paste0(
       "Hamilton's Depression Inventory - ", c(
         "Total score",
@@ -148,20 +155,20 @@ list_outcomes <- function() data.frame(
         "Sleep Disorders"
       )
     ),
-    "Self-rating Depression Scale",
-    "Quick Inventory of Depressive Symptomatology",
     paste0(
       "Hamilton's Anxiety Inventory - ", c(
         "Total score",
         "Somatization",
         "Psychological Anxiety"
       )
-    ),
-    "Beck's Anxiety Scale",
-    "Perceived Stress Scale",
-    "Chronotype Inventory"
+    )
   ),
   sub_abre = c( # abbreviation of subscale's name
+    "SDS",
+    "QIDS",
+    "BAI",
+    "PSS",
+    "Chronotype",
     paste0(
       "HAMD (", c(
         "Total score",
@@ -173,24 +180,17 @@ list_outcomes <- function() data.frame(
         "Sleep Disorders"
       ), ")"
     ),
-    "SDS",
-    "QIDS",
     paste0(
       "HAMA (", c(
         "Total score",
         "Somatization",
         "Psychological Anxiety"
       ), ")"
-    ),
-    "BAI",
-    "PSS",
-    "Chronotype"
+    )
   ),
   rater = c( # who was the evaluator
-    rep("clinician", 7), # HAMD
-    rep("self", 2), # SDS & QIDS
-    rep("clinician", 3), # HAMA
-    rep("self", 3) # BAI, PSS & Chronotype Inventory
+    rep("self"     , 5 ), # SDS, QIDS, BAI, PSS & Chronotype Inventory
+    rep("clinician", 10)  # HAMD & HAMA
   )
 )
 

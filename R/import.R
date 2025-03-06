@@ -39,8 +39,8 @@ import_data <- function(file, format = "long") {
       values_to = "score"
     ) %>%
     mutate( # re-code rows where there is no subscale
-      occasion = if_else( is.na(occasion), subscale, occasion),
-      subscale = if_else( subscale == occasion, NA, subscale)
+      occasion = if_else(is.na(occasion), subscale, occasion),
+      subscale = if_else(subscale == occasion, NA, subscale)
     ) %>%
     mutate( # formatting proper
       STUDY_ID = factor(x = STUDY_ID),
@@ -65,7 +65,7 @@ import_data <- function(file, format = "long") {
       stim_type = factor(
         x = case_when(stim_type == "HF" ~ 0, stim_type == "TBS" ~ 1),
         levels = 0:1,
-        labels = c("HF-rTMS", "TBS"),
+        labels = c("HF-rTMS", "iTBS"),
         ordered = F
       ),
       across(
@@ -109,10 +109,11 @@ import_data <- function(file, format = "long") {
   for (i in resp) for (j in c("T1","T2")) {
     
     # response rate
-    rr <- ( d0$wide[ , paste0(i,"_",j)] - d0$wide[ , paste0(i,"_T0")] ) / d0$wide[ , paste0(i,"_T0")]
+    rr <- (d0$wide[ , paste0(i,"_",j)] - d0$wide[ , paste0(i,"_T0")]) / d0$wide[ , paste0(i,"_T0")]
     
     # response (i.e., at least 50% reduction compared to baseline)
-    d0$wide[ , paste0(i,"_",j,"_response")] <- if_else(condition = rr < -0.5, true = 1, false = 0)
+    d0$wide[ , paste0(i,"_",j,"_perc_decl")] <- -100 * rr
+    d0$wide[ , paste0(i,"_",j,"_response")]  <- if_else(condition = rr < -0.5, true = 1, false = 0)
     
   }
   

@@ -404,22 +404,22 @@ print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", ti
       relocate(`d_HF-rTMS_T1-T0`        , .after = `p_HF-rTMS_T1-T0` ) %>%
       relocate(`magnitude_HF-rTMS_T1-T0`, .after = `d_HF-rTMS_T1-T0` ) %>%
       
-      relocate(`t_TBS_T1-T0`        , .after = `magnitude_HF-rTMS_T1-T0` ) %>% # T1-minus-T0 in TBS
-      relocate(`df_TBS_T1-T0`       , .after = `t_TBS_T1-T0`             ) %>%
-      relocate(`p_TBS_T1-T0`        , .after = `df_TBS_T1-T0`            ) %>%
-      relocate(`d_TBS_T1-T0`        , .after = `p_TBS_T1-T0`             ) %>%
-      relocate(`magnitude_TBS_T1-T0`, .after = `d_TBS_T1-T0`             ) %>%
+      relocate(`t_iTBS_T1-T0`        , .after = `magnitude_HF-rTMS_T1-T0` ) %>% # T1-minus-T0 in iTBS
+      relocate(`df_iTBS_T1-T0`       , .after = `t_iTBS_T1-T0`            ) %>%
+      relocate(`p_iTBS_T1-T0`        , .after = `df_iTBS_T1-T0`           ) %>%
+      relocate(`d_iTBS_T1-T0`        , .after = `p_iTBS_T1-T0`            ) %>%
+      relocate(`magnitude_iTBS_T1-T0`, .after = `d_iTBS_T1-T0`            ) %>%
       
       relocate(`df_HF-rTMS_T2-T0`       , .after = `t_HF-rTMS_T2-T0` ) %>% # T2-minus-T0 in HF-rTMS
       relocate(`p_HF-rTMS_T2-T0`        , .after = `df_HF-rTMS_T2-T0`) %>%
       relocate(`d_HF-rTMS_T2-T0`        , .after = `p_HF-rTMS_T2-T0` ) %>%
       relocate(`magnitude_HF-rTMS_T2-T0`, .after = `d_HF-rTMS_T2-T0` ) %>%
       
-      relocate(`t_TBS_T2-T0`        , .after = `magnitude_HF-rTMS_T2-T0` ) %>% # T2-minus-T0 in TBS
-      relocate(`df_TBS_T2-T0`       , .after = `t_TBS_T2-T0`             ) %>%
-      relocate(`p_TBS_T2-T0`        , .after = `df_TBS_T2-T0`            ) %>%
-      relocate(`d_TBS_T2-T0`        , .after = `p_TBS_T2-T0`             ) %>%
-      relocate(`magnitude_TBS_T2-T0`, .after = `d_TBS_T2-T0`             ) %>%
+      relocate(`t_iTBS_T2-T0`        , .after = `magnitude_HF-rTMS_T2-T0` ) %>% # T2-minus-T0 in iTBS
+      relocate(`df_iTBS_T2-T0`       , .after = `t_iTBS_T2-T0`            ) %>%
+      relocate(`p_iTBS_T2-T0`        , .after = `df_iTBS_T2-T0`           ) %>%
+      relocate(`d_iTBS_T2-T0`        , .after = `p_iTBS_T2-T0`            ) %>%
+      relocate(`magnitude_iTBS_T2-T0`, .after = `d_iTBS_T2-T0`            ) %>%
       
       relocate(`df_HF-rTMS_T2-T1`       , .after = `t_HF-rTMS_T2-T1` ) %>%
       relocate(`p_HF-rTMS_T2-T1`        , .after = `df_HF-rTMS_T2-T1`) %>%
@@ -428,11 +428,11 @@ print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", ti
       
       gt_apa(title = tit) %>%
       
-      tab_spanner(columns = contains("HF-rTMS"), label = "HF-rTMS",     gather = F) %>%
-      tab_spanner(columns = contains("TBS"),     label = "TBS",         gather = F) %>%
-      tab_spanner(columns = ends_with("T1-T0"),  label = "T1-minus-T0", gather = F) %>%
-      tab_spanner(columns = ends_with("T2-T0"),  label = "T2-minus-T0", gather = F) %>%
-      tab_spanner(columns = ends_with("T2-T1"),  label = "T2-minus-T1", gather = F) %>%
+      tab_spanner(columns = contains("HF-rTMS"), label = "HF-rTMS"    , gather = F) %>%
+      tab_spanner(columns = contains("iTBS")   , label = "iTBS"       , gather = F) %>%
+      tab_spanner(columns = ends_with("T1-T0") , label = "T1-minus-T0", gather = F) %>%
+      tab_spanner(columns = ends_with("T2-T0") , label = "T2-minus-T0", gather = F) %>%
+      tab_spanner(columns = ends_with("T2-T1") , label = "T2-minus-T1", gather = F) %>%
       
       cols_label(
         y                         ~ "Outcome",
@@ -448,14 +448,14 @@ print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", ti
     tab <- df %>%
       
       # arrange columns
-      relocate(`df_T0_TBS-HF-rTMS`       , .after = `t_T0_TBS-HF-rTMS`  ) %>% # TBS-minus-HF-rTMS in T0
-      relocate(`p_T0_TBS-HF-rTMS`        , .after = `df_T0_TBS-HF-rTMS` ) %>%
-      relocate(`d_T0_TBS-HF-rTMS`        , .after = `p_T0_TBS-HF-rTMS`  ) %>%
-      relocate(`magnitude_T0_TBS-HF-rTMS`, .after = `d_T0_TBS-HF-rTMS`  ) %>%
-      relocate(`df_T1_TBS-HF-rTMS`       , .after = `t_T1_TBS-HF-rTMS`  ) %>% # TBS-minus-HF-rTMS in T1
-      relocate(`p_T1_TBS-HF-rTMS`        , .after = `df_T1_TBS-HF-rTMS` ) %>%
-      relocate(`d_T1_TBS-HF-rTMS`        , .after = `p_T1_TBS-HF-rTMS`  ) %>%
-      relocate(`magnitude_T1_TBS-HF-rTMS`, .after = `d_T1_TBS-HF-rTMS`  ) %>%
+      relocate(`df_T0_iTBS-HF-rTMS`       , .after = `t_T0_iTBS-HF-rTMS` ) %>% # iTBS-minus-HF-rTMS in T0
+      relocate(`p_T0_iTBS-HF-rTMS`        , .after = `df_T0_iTBS-HF-rTMS`) %>%
+      relocate(`d_T0_iTBS-HF-rTMS`        , .after = `p_T0_iTBS-HF-rTMS` ) %>%
+      relocate(`magnitude_T0_iTBS-HF-rTMS`, .after = `d_T0_iTBS-HF-rTMS` ) %>%
+      relocate(`df_T1_iTBS-HF-rTMS`       , .after = `t_T1_iTBS-HF-rTMS` ) %>% # iTBS-minus-HF-rTMS in T1
+      relocate(`p_T1_iTBS-HF-rTMS`        , .after = `df_T1_iTBS-HF-rTMS`) %>%
+      relocate(`d_T1_iTBS-HF-rTMS`        , .after = `p_T1_iTBS-HF-rTMS` ) %>%
+      relocate(`magnitude_T1_iTBS-HF-rTMS`, .after = `d_T1_iTBS-HF-rTMS` ) %>%
       
       
       gt_apa(title = tit) %>%
@@ -481,7 +481,7 @@ print_paired_comparisons <- function(comps, labs, x = "occas", type = "main", ti
     source_note = md("HAMA: Hamilton's Depression Inventory; SDS: Self-rating Depression Scale, QIDS:
       Quick Inventory of Depressive Symptomatology; HAMA: Hamilton's Anxiety Inventory, BAI: Beck's 
       Anxiety Scale; PSS: Perceived Stress Scale; HF-rTMS: high frequency repetitive transcranial magnetic
-      stimulation; TBS: intermittent theta burst stimulation; *t*: test statistic; df: degrees of freedom;
+      stimulation; iTBS: intermittent theta burst stimulation; *t*: test statistic; df: degrees of freedom;
       *p*: unadjusted p-value; *d*: Cohen's d with Hedges correction with its 95% confidence interval;
       ES: verbal classification of the effect size point estimate.")
     
