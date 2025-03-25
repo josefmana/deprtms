@@ -166,7 +166,7 @@ list(
       .data   = data_long,
       include = c(0,1),
       decs    = 2,
-      tit     = "<b>Table 8<br>Outcomes description.</b> Outcomes' descriptive statistics for the intention-to-treat analysis for the two groups after randomization."
+      tit     = "<b>Table 5<br>Outcomes description.</b> Outcomes' descriptive statistics for the intention-to-treat analysis for the two groups after randomization."
     )
   ),
   tar_target(
