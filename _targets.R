@@ -1,48 +1,37 @@
-#
-# This is a script defining targets pipeline of the rTMS clinical trial for depression project.
-#
-
-# Load packages required to define the pipeline:
 library(targets)
 library(tarchetypes)
 
 # Set target options:
-tar_option_set( packages = c(
-  
-  "here",       # for path listing
-  "tidyverse",  # for data wrangling
-  "readxl",     # for reading Excel
-  "ggdag",      # for DAG drawing
-  "ggraph",     # for advanced DAG/ggplot operations
-  "gt",         # for nice tables
-  "ggpubr",     # for easier time with boxplots
-  "patchwork",  # for putting plots together
-  "rstatix",    # for repeated measures ANOVAs
-  "patchwork",  # for arranging plots
-  "lmerTest",   # for frequentist LMMs
-  "rstanarm",   # for Bayesian LMMs
-  "emmeans",    # for marginal means and contrast of frequentist LMMs
-  "bayestestR", # for contrasts
-  "performance" # for model diagnostics
-  
-) )
+tar_option_set(packages = c(
+  "here",       # path listing
+  "tidyverse",  # data wrangling
+  "readxl",     # reading Excel
+  "ggdag",      # DAG drawing
+  "ggraph",     # advanced DAG/ggplot operations
+  "gt",         # nice tables
+  "ggpubr",     # easier time with boxplots
+  "patchwork",  # putting plots together
+  "rstatix",    # repeated measures ANOVAs
+  "patchwork",  # arranging plots
+  "lmerTest",   # frequentist LMMs
+  "emmeans",    # marginal means and contrast of frequentist LMMs
+  "bayestestR", # contrasts
+  "performance" # model diagnostics
+))
 
-# Load all in-house functions:
 tar_source()
 
-# List the targets:
 list(
-
   ## CAUSAL ASSUMPTIONS ----
   tar_target(
     name    = DAG, # base directed acyclic graph representing causal structure of the problem
-    command = make_dag(plot = T)
+    command = make_dag(plot = TRUE)
   ),
 
   ## DATA FILES ----
   tar_target(
     name    = desc_path, # path to variables' description
-    command = here("_raw", "data_descript_rct_rtms.csv"),
+    command = here::here("_raw", "data_descript_rct_rtms.csv"),
     format  = "file"
   ),
   tar_target(
@@ -51,7 +40,7 @@ list(
   ),
   tar_target(
     name    = data_path, # path to raw data
-    command = here("_raw", "data_rtms_rct_clean_MEDIKACE.xlsx"),
+    command = here::here("_raw", "data_rtms_rct_clean_MEDIKACE.xlsx"),
     format  = "file"
   ),
   tar_target(
@@ -78,35 +67,35 @@ list(
   ),
   tar_target(
     name    = data_lmer, # data formatted for linear mixed-effects regressions
-    command = prepare_LMM_data(d0 = data_half)
+    command = prepare_lmm_data(d0 = data_half)
   ),
   
   ## DESCRIPTION OF THE SAMPLE ----
   tar_target(
     name    = sample_description, # prepare a table with demographics
     command = decribe_demographics(
-      .data = data_wide,
+      data  = data_wide,
       tit   = "<b>Table 1<br>Subject demographics.</b> Demographics for the two groups after randomization."
     )
   ),
   tar_target(
     name    = response_rates, # prepare a table with reponse/remission rates
     command = describe_responses(
-      .data  = data_wide,
+      data   = data_wide,
       labels = outcomes,
       tit    = "<b>Table 4<br>Response and remission rates.</b> Frequency and rate of subjects' response and remissions per group."
     )
   ),
   tar_target(
     name    = response_plots, # plot 
-    command = plot_responses(.data = data_wide)
+    command = plot_responses(data = data_wide)
   ),
   
   ## PER PROTOCOL ANALYSIS ----
   tar_target(
     name    = per_protocol_descriptives, # descriptive table for the per protocol analysis
     command = describe_outcomes(
-      .data   = data_long,
+      data    = data_long,
       include = 1,
       decs    = 2,
       tit     = "<b>Table 2<br>Outcomes description.</b> Outcomes' descriptive statistics for the per protocol analysis for the two groups after randomization."
@@ -114,11 +103,11 @@ list(
   ),
   tar_target(
     name    = per_protocol_ANOVAs, # mixed ANOVAs as the first approximation per protocol analysis
-    command = conduct_ANOVA_loop(.data = data_half, labs = outcomes, show_stats = 2)
+    command = conduct_anova_loop(data = data_half, labs = outcomes, show_stats = 2)
   ),
   tar_target(
     name    = per_protocol_ANOVA_table, # extract a big (set of) ANOVAs table(s)
-    command = print_ANOVA_table(
+    command = print_anova_table(
       anovas = per_protocol_ANOVAs,
       labs   = outcomes,
       tit   = "<b>Table 3<br>Analyses of variance.</b> A series of univariate mixed ANOVAs testing for null effects in a per-protocol analysis."
@@ -163,19 +152,19 @@ list(
   tar_target(
     name    = intention_to_treat_descriptives, # descriptive table for the intention-to-treat analysis
     command = describe_outcomes(
-      .data   = data_long,
-      include = c(0,1),
+      data    = data_long,
+      include = c(0, 1),
       decs    = 2,
       tit     = "<b>Table 5<br>Outcomes description.</b> Outcomes' descriptive statistics for the intention-to-treat analysis for the two groups after randomization."
     )
   ),
   tar_target(
     name    = intention_to_treat_LMERs, # LMMs as the first approximation intention to treat analysis
-    command = conduct_LMER_loop(data = data_lmer, labs = outcomes)
+    command = conduct_lmer_loop(data = data_lmer, labs = outcomes)
   ),
   tar_target(
     name    = intention_to_treat_ANOVA_table, # extract a big (set of) ANOVA table(s)
-    command = print_lmer_ANOVA(
+    command = print_lmer_anova(
       lmers = intention_to_treat_LMERs,
       labs  = outcomes,
       tit   = "<b>Table 9<br>Analyses of variance.</b> A series of univariate ANOVAs testing for null effects in an intention-to-treat analysis."
@@ -222,8 +211,7 @@ list(
   tar_quarto(
     name  = report, # render a Quarto report
     path  = "report.qmd",
-    quiet = F
+    quiet = FALSE
   )
-  
 )
 

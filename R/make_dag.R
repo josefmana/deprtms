@@ -1,16 +1,13 @@
-#
-# This is a script used to represent causal assumptions
-# for deducing correct adjustment sets
-# for a subsequent statistical analysis
-#
-
-#
-# PREPARE & SAVE A DAG ----
-make_dag <- function(plot = T) {
-  
-  # set-up a data frame with node labels and coordinates
+#' Make a directed acyclic graph
+#' 
+#' @param plot Logical
+#' 
+#' @returns Either a ggplot (`plot = TRUE`)
+#'   or a ggdagitty object (`plot = FALSE`)
+#' 
+#' @export
+make_dag <- function(plot = TRUE) {
   nms <- data.frame(
-
     name = c(
       paste0("SDS_T", 0:2),      # observed depressive symptoms variables (self-rating)
       paste0("QIDS_T", 0:2),     # observed depressive symptoms variables (self-rating)
@@ -71,13 +68,11 @@ make_dag <- function(plot = T) {
       rep(-3,3), # unobserved error scores for anxiety (self-rating)
       rep(-3,3)  # unobserved error scores for anxiety (clinician-rating)
     )
-
+    
   )
   
-  # prepare the DAG
-  dag <- dagify(
-    
-    # observed scores
+  dag <- ggdag::dagify(
+    # Observed scores
     SDS_T0 ~ Depr_T0 + ed_T0,
     SDS_T1 ~ Depr_T1 + ed_T1,
     SDS_T2 ~ Depr_T2 + ed_T2,
@@ -98,7 +93,7 @@ make_dag <- function(plot = T) {
     HAMA_tot_T1 ~ Anx_T1 + ta_T1,
     HAMA_tot_T2 ~ Anx_T2 + ta_T2,
     
-    # latent variables
+    # Latent variables
     Depr_T1 ~ Depr_T0 + Stim,
     Depr_T2 ~ Depr_T1 + Stim,
     Anx_T1 ~ Anx_T0 + Stim,
@@ -109,39 +104,32 @@ make_dag <- function(plot = T) {
       paste0("Anx_T", 0:2), paste0("ea_T", 0:2), paste0("ta_T", 0:2)
     ),
     coords = nms
-    
-  ) %>%
-    
-    tidy_dagitty() %>%
-    arrange("name")
+  ) |>
+    ggdag::tidy_dagitty() |>
+    dplyr::arrange("name")
   
-  # plot the DAG
-  dag_plt <- dag %>%
-    
-    # prepare the plot
-    ggplot() +
-    aes(x = x, y = y, xend = xend, yend = yend) +
-    
-    # add nodes and edges
-    geom_dag_point(size = 30, colour = "white") +
-    scale_colour_manual(values = "white") +
-    geom_dag_edges(
+  dag_plt <- dag |>
+    ggplot2::ggplot() +
+    ggplot2::aes(x = x, y = y, xend = xend, yend = yend) +
+    ggdag::geom_dag_point(size = 30, colour = "white") +
+    ggplot2::scale_colour_manual(values = "white") +
+    ggdag::geom_dag_edges(
       arrow_directed = grid::arrow(length = grid::unit(8, "pt"), type = "open"),
       start_cap = ggraph::ellipsis(13, 9, 'mm'),
       end_cap = ggraph::ellipsis(13, 9,'mm')
     ) +
-    geom_dag_text(
+    ggdag::geom_dag_text(
       label = arrange(nms, name)$label,
       colour = "black",
       size = 5.83,
-      parse = T
+      parse = TRUE
     ) +
-    
-    # finishing touches
-    theme_dag() +
-    theme(legend.position = "none")
+    ggdag::theme_dag() +
+    ggplot2::theme(legend.position = "none")
   
-  # return it
-  if(plot == T) return(dag_plt) else return(dag)
-
+  if(plot) {
+    dag_plt
+  } else {
+    dag
+  }
 }

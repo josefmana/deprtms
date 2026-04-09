@@ -1,5 +1,6 @@
 # files not supposed to be shared
 models/**/*.rds
+**/*.html
 **/.DS_Store
 **/*.docx
 **/*.pages
