@@ -37,6 +37,7 @@ test_paired_differences <- function(
     if (grepl("t_test", fun)) {
       argument$hedges.correction <- NULL
       argument$ci <- NULL
+      argument$detailed <- TRUE
     }
     
     set.seed(87542)
@@ -45,7 +46,8 @@ test_paired_differences <- function(
     if (grepl("t_test", fun)) {
       tab <- tab |>
         dplyr::ungroup() |>
-        rstatix::adjust_pvalue(method = adjust)
+        rstatix::adjust_pvalue(method = adjust) |>
+        dplyr::select(-tidyselect::starts_with("conf."))
     }
     
     tab
@@ -60,9 +62,14 @@ test_paired_differences <- function(
 #' 
 #' @param mod Model
 #' @param lab Labels
+#' @param type Type of analysis, `"vanilla"` or `"ancova"`
 #' @param adj Multiple comparisons adjustment
 #' @param form Formula (as character)
 #' @param contr Contrast to {emmeans}
+#' @param base For ANCOVA, baseline outcome level
+#' 
+#' @details
+#' ANCOVA type analysis applied only to `~ occasion | treatment`.
 #' 
 #' @returns data.frame
 #' 
@@ -70,24 +77,62 @@ test_paired_differences <- function(
 compute_pairwise_comparisons <- function(
     mod,
     lab,
+    type = "vanilla",
     adj = "tukey",
     form = "~ occasion",
-    contr = "revpairwise"
+    contr = "revpairwise",
+    base = NULL
 ) {
-  emm <-
-    emmeans::emmeans(mod, as.formula(form)) |>
-    emmeans::contrast(method = contr, adjust = adj) |>
-    tibble::as_tibble() |>
-    dplyr::mutate(outcome = lab, .before = 1)
   
-  ci <-
-    emmeans::emmeans(mod, as.formula(form)) |>
-    emmeans::contrast(method = contr, adjust = adj) |>
-    confint() |>
-    tibble::as_tibble() |>
-    dplyr::select(tidyselect::ends_with(".CL"))
+  if (type == "vanilla") {
+    emm <-
+      emmeans::emmeans(mod, as.formula(form)) |>
+      emmeans::contrast(method = contr, adjust = adj) |>
+      tibble::as_tibble() |>
+      dplyr::mutate(outcome = lab, .before = 1)
+    
+    ci <-
+      emmeans::emmeans(mod, as.formula(form)) |>
+      emmeans::contrast(method = contr, adjust = adj) |>
+      confint() |>
+      tibble::as_tibble() |>
+      dplyr::select(tidyselect::ends_with(".CL"))
+    
+    tab <- cbind.data.frame(emm, ci)
+  }
   
-  cbind.data.frame(emm, ci)
+  if (type == "ancova") {
+    
+    emm_post <-
+      emmeans::emmeans(mod, ~ occasion | treatment, at = list(baseline = base)) |>
+      as.data.frame()
+    
+    baseline_df <- data.frame(
+      occasion = "T0",
+      treatment = c("HF-rTMS", "iTBS"),
+      emmean = base,
+      SE = NA,
+      df = NA
+    )
+    
+    emm_full <- dplyr::bind_rows(baseline_df, emm_post)
+    
+    tab <- emm_full |>
+      dplyr::group_by(treatment) |>
+      dplyr::summarise(
+        `T1 - T0` = emmean[occasion == "T1"] - emmean[occasion == "T0"],
+        `T2 - T0` = emmean[occasion == "T2"] - emmean[occasion == "T0"],
+        `T2 - T1` = emmean[occasion == "T2"] - emmean[occasion == "T1"],
+        .groups = "drop"
+      ) |>
+      tidyr::pivot_longer(
+        -treatment,
+        names_to = "contrast",
+        values_to = "estimate"
+      )
+  }
+  
+  tab
 }
 
 #' Extract table of paired comparisons
@@ -252,4 +297,106 @@ print_paired_comparisons <- function(
       *d*: Cohen's d with Hedges correction with its 95% confidence interval;
       ES: verbal classification of the effect size point estimate.")
   )
+}
+
+#' Table direct comparisons occasion simple effects
+#' 
+#' @param vanilla The original estimates
+#' @param ancova1 `outcome ~ treatment * post + pre ... ` model
+#' @param ancova2 `outcome ~ treatment * post + treatment * pre ... ` model
+#' @param pp Per-protocol (`TRUE`) or intention-to-treat (`FALSE`)?
+#' @param tit Table title
+#' @param labs Labels
+#' 
+#' @returns gt table
+#' 
+#' @export
+print_baseline_adjustment_comparisons_table <- function(
+    vanilla,
+    ancova1,
+    ancova2,
+    pp = TRUE,
+    tit = " ",
+    labs
+) {
+  
+  if (pp) {
+    for (i in names(vanilla)) {
+      vanilla[[i]]$pwc_occas_simp <- vanilla[[i]]$occas_simp_comp |>
+        dplyr::mutate(
+          estimate = -estimate,
+          contrast = paste(group2, group1, sep = " - ")
+        ) |>
+        dplyr::select(treatment, contrast, estimate)
+    }
+    foot_vanilla <- "Primary mixed ANOVA analysis."
+  } else {
+    foot_vanilla <- "Primary mixed-effects model."
+  }
+  
+  purrr::map_dfr(seq_len(nrow(labs)), function(y) {
+    with(labs, {
+      list(
+        vanilla[[var[y]]]$pwc_occas_simp |> dplyr::mutate(model = "vanilla"),
+        ancova1[[var[y]]]$pwc_occas_simp |> dplyr::mutate(model = "ancova1"),
+        ancova2[[var[y]]]$pwc_occas_simp |> dplyr::mutate(model = "ancova2")
+      ) |>
+        purrr::reduce(dplyr::full_join, by = c("treatment", "contrast", "estimate", "model")) |>
+        dplyr::mutate(y = sub_abre[[y]])
+    })
+  }) |>
+    tidyr::pivot_wider(
+      id_cols = y,
+      values_from = estimate,
+      names_from = c(model, treatment, contrast)
+    ) |>
+    dplyr::select(
+      y,
+      tidyselect::ends_with("HF-rTMS_T1 - T0"),
+      tidyselect::ends_with("iTBS_T1 - T0"),
+      tidyselect::ends_with("HF-rTMS_T2 - T0"),
+      tidyselect::ends_with("iTBS_T2 - T0"),
+      tidyselect::ends_with("HF-rTMS_T2 - T1"),
+      tidyselect::ends_with("iTBS_T2 - T1")
+    ) |>
+    
+    gt_apa(title = tit) |>
+    
+    gt::tab_spanner(columns = tidyselect::contains("HF-rTMS"), label = "HF-rTMS"    , gather = FALSE) |>
+    gt::tab_spanner(columns = tidyselect::contains("iTBS")   , label = "iTBS"       , gather = FALSE) |>
+    gt::tab_spanner(columns = tidyselect::ends_with("T1 - T0") , label = "T1-minus-T0", gather = FALSE) |>
+    gt::tab_spanner(columns = tidyselect::ends_with("T2 - T0") , label = "T2-minus-T0", gather = FALSE) |>
+    gt::tab_spanner(columns = tidyselect::ends_with("T2 - T1") , label = "T2-minus-T1", gather = FALSE) |>
+    
+    gt::fmt_number(decimals = 2) |>
+    gt::cols_label(
+      y ~ "Outcome",
+      tidyselect::starts_with("vanilla") ~ "Primary",
+      tidyselect::starts_with("ancova1") ~ "ANCOVA (add.)",
+      tidyselect::starts_with("ancova2") ~ "ANCOVA (int.)"
+    ) |>
+    
+    gt::tab_footnote(
+      footnote = foot_vanilla,
+      locations = gt::cells_column_labels(tidyselect::contains("vanilla"))
+    ) |>
+    
+    gt::tab_footnote(
+      footnote = "Baseline-adjusted ANCOVA with baseline score as additive covariate.",
+      locations = gt::cells_column_labels(tidyselect::contains("ancova1"))
+    ) |>
+    
+    gt::tab_footnote(
+      footnote = "Baseline-adjusted ANCOVA with baseline score x measurement occasion interaction included.",
+      locations = gt::cells_column_labels(tidyselect::contains("ancova2"))
+    ) |>
+    
+    gt::tab_source_note(
+      source_note = gt::md("ANCOVA: Analysis of Covariance; HAMA: Hamilton's Depression Inventory;
+      SDS: Self-rating Depression Scale, QIDS: Quick Inventory of Depressive Symptomatology;
+      HAMA: Hamilton's Anxiety Inventory, BAI: Beck's Anxiety Scale; PSS: Perceived Stress Scale;
+      HF-rTMS: high frequency repetitive transcranial magnetic stimulation;
+      iTBS: intermittent theta burst stimulation.")
+    )
+  
 }

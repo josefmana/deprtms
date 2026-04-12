@@ -249,7 +249,9 @@ tabs_struct <- function() {
       "intention_to_treat_ANOVA_table",
       "intention_to_treat_pwc_occasion_main",
       "intention_to_treat_pwc_occasion_simple",
-      "intention_to_treat_pwc_treatment_simple"
+      "intention_to_treat_pwc_treatment_simple",
+      "per_protocol_baseline_sensitivity",
+      "intention_to_treat_baseline_sensitivity"
     ),
     path = paste0(
       "tables/", c(
@@ -264,7 +266,9 @@ tabs_struct <- function() {
         "intention_to_treat_ANOVAs",
         "intention_to_treat_PWCs_occasion_main",
         "intention_to_treat_PWCs_occasion_simple_main",
-        "intention_to_treat_PWCs_treatment_simple_main"
+        "intention_to_treat_PWCs_treatment_simple_main",
+        "per_protocol_baseline_sensitivity",
+        "intention_to_treat_baseline_sensitivity"
       )
     )
   )
@@ -281,8 +285,8 @@ save_tables <- function(struct) {
   for (i in seq_len(nrow(struct))) {
     with(struct, {
       cat(paste0("Writing ",path[i], " ... \n"))
-      gt::gtsave(targets::tar_read_raw(tar[i]), paste0(path[i],".html"))
-      gt::gtsave(targets::tar_read_raw(tar[i]), paste0(path[i],".docx"))
+      gt::gtsave(targets::tar_read_raw(tar[i]), paste0(path[i], ".html"))
+      gt::gtsave(targets::tar_read_raw(tar[i]), paste0(path[i], ".docx"))
     })
   }
 }

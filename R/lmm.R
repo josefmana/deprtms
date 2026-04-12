@@ -3,19 +3,83 @@
 #' @param d0 Input data
 #' @param outcome Outcome variable
 #' @param labels Labels
+#' @param type Type of analysis
 #' 
-#' @returns List of outcomes
+#' @details
+#' `type` can be:
+#' - `"vanilla"` for classical `outcome ~ treatment * occasion + (1 | STUDY_ID)`
+#' - `"baseline"` for baseline-adjusted `outcome ~ treatment * occasion + baseline + (1 | STUDY_ID)`
+#' - `"baseline2"` for baseline-adjusted `outcome ~ (treatment + baseline) * occasion + (1 | STUDY_ID)`
+#' - `"baseline_pp"` for baseline-adjusted `outcome ~ treatment * occasion + baseline + (1 | STUDY_ID)`
+#'   on per protocol sample
+#' - `"baseline_pp2"` for baseline-adjusted `outcome ~ (treatment + baseline) * occasion + (1 | STUDY_ID)`
+#'   on per protocol sample
+#' - `"random1"` for random slopes `outcome ~ treatment * occasion + (1 + occasion | STUDY_ID)`
+#' - `"random2"` for random slopes `outcome ~ treatment * occasion + (1 + occasion  || STUDY_ID)`
+#' 
+#' For baseline-adjusted analyses, T0 results are treated as predictor (`pre`)
+#' instead of outcome and `occasion` contains two levels (T1, T2).
+#' 
+#' @returns List of results
 #' 
 #' @export
-conduct_lmer <- function(d0, outcome, labels) {
+conduct_lmer <- function(d0, outcome, labels, type = "vanilla") {
   
   df <- d0 |>
-    dplyr::select(tidyselect::all_of(c("STUDY_ID", "occasion", "treatment", outcome)))
+    dplyr::mutate(occasion = factor(x = occasion, ordered = FALSE)) |>
+    dplyr::select(tidyselect::all_of(
+      c("STUDY_ID", "occasion", "treatment", "completed", outcome)
+    ))
+  
+  if (grepl("baseline", type)) {
+    df <- df |>
+      tidyr::pivot_wider(
+        names_from = occasion,
+        values_from = tidyselect::all_of(outcome)
+      ) |>
+      dplyr::rename(baseline = T0) |>
+      tidyr::pivot_longer(
+        c(T1, T2),
+        names_to = "occasion",
+        names_transform = factor,
+        values_to = outcome
+      )
+  }
+  
+  if (grepl("_pp", type)) {
+    df <- df |>
+      dplyr::filter(completed == 1)
+  }
+  
+  if (type == "cLDA") {
+    df$occasion <- relevel(df$occasion, ref = "T0")
+    
+    dummy_occas <- paste0("occasion", levels(df$occasion)[-1], "treatmentiTBS")
+    for (o in dummy_occas) {
+      i <- stringr::str_replace_all(o, c(occasion = "", treatmentiTBS = ""))
+      df[[o]] <- as.numeric(df$treatment == "iTBS" & df$occasion == i)
+    }
+  }
+  
+  contrasts(df$occasion) <- contr.treatment
+  contrasts(df$treatment) <- contr.treatment
   
   lab <- labels[labels$var == outcome, "sub_abre"]
   
+  form <- c(
+    "vanilla"      = paste0(outcome, " ~ treatment * occasion + (1 | STUDY_ID)"),
+    "baseline"     = paste0(outcome, " ~ treatment * occasion + baseline + (1 | STUDY_ID)"),
+    "baseline2"    = paste0(outcome, " ~ (treatment + baseline) * occasion + (1 | STUDY_ID)"),
+    "baseline_pp"  = paste0(outcome, " ~ treatment * occasion + baseline + (1 | STUDY_ID)"),
+    "baseline_pp2" = paste0(outcome, " ~ (treatment + baseline) * occasion + (1 | STUDY_ID)"),
+    #"cLDA"         = paste0(outcome, " ~ occasion + occasionT1treatmentiTBS + occasionT2treatmentiTBS + (1 | STUDY_ID)"),
+    "random1"      = paste0(outcome, " ~ treatment * occasion + (1 + occasion | STUDY_ID)"),
+    "random2"      = paste0(outcome, " ~ treatment * occasion + (1 + occasion || STUDY_ID)"),
+    NULL
+  )
+  
   fit <- lmerTest::lmer(
-    formula = as.formula(paste0(outcome," ~ treatment * occasion + (1 | STUDY_ID)")),
+    formula = as.formula(form[[type]]),
     data = df,
     REML = TRUE 
   )
@@ -25,7 +89,7 @@ conduct_lmer <- function(d0, outcome, labels) {
   plt <-
     emmeans::emmip(fit, treatment ~ occasion, CIs = TRUE, PIs = TRUE) +
     ggplot2::labs(x = "Occasion", y = lab) +
-    ggplot2::scale_colour_manual(values = c("#64CDCC","#F9A729"))
+    ggplot2::scale_colour_manual(values = c("#64CDCC", "#F9A729"))
   
   aov <- anova(fit) |>
     tibble::as_tibble(rownames = NA) |>
@@ -33,7 +97,11 @@ conduct_lmer <- function(d0, outcome, labels) {
   
   occas_main <- compute_pairwise_comparisons(fit, lab, form = "~ occasion")
   treat_main <- compute_pairwise_comparisons(fit, lab, form = "~ treatment")
-  occas_simp <- compute_pairwise_comparisons(fit, lab, form = "~ occasion | treatment")
+  if (grepl("baseline", type)) {
+    occas_simp <- compute_pairwise_comparisons(fit, lab, type = "ancova", base = mean(df$baseline, na.rm = TRUE))
+  } else {
+    occas_simp <- compute_pairwise_comparisons(fit, lab, form = "~ occasion | treatment")
+  }
   treat_simp <- compute_pairwise_comparisons(fit, lab, form = "~ treatment | occasion")
   
   list(
@@ -42,7 +110,7 @@ conduct_lmer <- function(d0, outcome, labels) {
     ANOVA_table    = aov,
     pwc_occas_main = occas_main, # pairwise comparisons between occasions averaged over treatments
     pwc_occas_simp = occas_simp, # pairwise comparisons between occasions conditional on the treatment
-    pwc_occas_main = treat_main, # pairwise comparisons between treatments averaged over levels of occasion
+    pwc_treat_main = treat_main, # pairwise comparisons between treatments averaged over levels of occasion
     pwc_treat_simp = treat_simp, # pairwise comparisons between treatments conditional on the occasion
     plot           = plt
   )
@@ -52,17 +120,21 @@ conduct_lmer <- function(d0, outcome, labels) {
 #' 
 #' @param data Input data
 #' @param labs Labels
+#' @param type Type of analysis
+#' 
+#' @seealso [conduct_lmer()]
 #' 
 #' @returns List of lists of results
 #' 
 #' @export
-conduct_lmer_loop <- function(data, labs) {
+conduct_lmer_loop <- function(data, labs, type = "vanilla") {
   nms <- rlang::set_names(seq_len(nrow(labs)), nm = labs$var)
   lapply(nms, function(y) {
     conduct_lmer(
       d0      = data,
       outcome = labs[y, "var"],
-      labels  = labs
+      labels  = labs,
+      type    = type 
     )
   })
 }
@@ -267,6 +339,7 @@ print_lmer_pwc <- function(
       Quick Inventory of Depressive Symptomatology; HAMA: Hamilton's Anxiety Inventory, BAI: Beck's 
       Anxiety Scale; PSS: Perceived Stress Scale; HF-rTMS: high frequency repetitive transcranial magnetic
       stimulation; iTBS: intermittent theta burst stimulation; *Estimate [95% CI]*: Estimated difference with
-      its 95% confidence interval; *t*: test statistic; df: degrees of freedom; *p*: unadjusted p-value.")
+      its 95% confidence interval; *t*: test statistic; df: degrees of freedom; *p*: p-value after applying
+      rowwise Tukey adjustment for multiple comparisons.")
   )
 }

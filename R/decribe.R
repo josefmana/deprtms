@@ -309,7 +309,7 @@ describe_responses <- function(data, labels, tit = " ") {
     dplyr::filter(completed == 1)
   
   perc <- sapply(levels(data$treatment), function(i) {
-    d0 <- subset(data, treatment == i)[, names(data)[grepl("_perc",names(data))]]
+    d0 <- subset(data, treatment == i)[, names(data)[grepl("_perc", names(data))]]
     apply(d0, 2, cenvar)
   }) |>
     as.data.frame() |>
@@ -335,7 +335,9 @@ describe_responses <- function(data, labels, tit = " ") {
   stats <- lapply(rlang::set_names(unique(tab$measure)), function(i) {
     lapply(rlang::set_names(unique(tab$scale)), function(y) {
       lapply(rlang::set_names(c("T1", "T2")), function(t) {
-        chisq.test(table(data[[paste0(y,"_",t,"_",i)]], data$treatment))
+        out <- factor(data[[paste0(y, "_", t, "_", i)]], levels = c(0, 1))
+        #chisq.test(table(data[[paste0(y, "_", t,"_", i)]], data$treatment))
+        fisher.test(table(out, data$treatment))
       })
     })
   })
@@ -346,8 +348,10 @@ describe_responses <- function(data, labels, tit = " ") {
         sapply(seq_len(dplyr::n()), function(i) with(
           stats[[measure[i]]][[scale[i]]]$T1,
           paste0(
-            "χ2(", rprint(parameter, 0),") = ",
-            rprint(statistic, 2),
+            #"χ2(", rprint(parameter, 0),") = ",
+            #rprint(statistic, 2),
+            "OR = ", rprint(estimate, 2),
+            " [", paste(rprint(conf.int, 2), collapse = ", "), "]",
             ", p ", pprint(p.value, 3, TRUE)
           )
         ))
@@ -356,8 +360,10 @@ describe_responses <- function(data, labels, tit = " ") {
         sapply(seq_len(dplyr::n()), function(i) with(
           stats[[measure[i]]][[scale[i]]]$T2,
           paste0(
-            "χ2(", rprint(parameter, 0),") = ",
-            rprint(statistic, 2),
+            #"χ2(", rprint(parameter, 0),") = ",
+            #rprint(statistic, 2),
+            "OR = ", rprint(estimate, 2),
+            " [", paste(rprint(conf.int, 2), collapse = ", "), "]",
             ", p ", pprint(p.value, 3, TRUE)
           )
         ))

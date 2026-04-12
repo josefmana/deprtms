@@ -31,7 +31,7 @@ list(
   ## DATA FILES ----
   tar_target(
     name    = desc_path, # path to variables' description
-    command = here::here("_raw", "data_descript_rct_rtms.csv"),
+    command = here::here("data-raw", "data_descript_rct_rtms.csv"),
     format  = "file"
   ),
   tar_target(
@@ -40,7 +40,7 @@ list(
   ),
   tar_target(
     name    = data_path, # path to raw data
-    command = here::here("_raw", "data_rtms_rct_clean_MEDIKACE.xlsx"),
+    command = here::here("data-raw", "data_rtms_rct_clean_MEDIKACE.xlsx"),
     format  = "file"
   ),
   tar_target(
@@ -57,17 +57,17 @@ list(
     name    = data_half,
     command = import_data(file = data_file, format = "long")
   ),
+  tar_target( # pre-vs-post data for baseline adjustment
+    name    = data_prepost,
+    command = import_data(file = data_file, format = "prepost")
+  ),
   tar_target(
     name    = data_long, # data in long-format w.r.t. time-point and w.r.t. to outcomes
     command = import_data(file = data_file, format = "longer")
   ),
   tar_target(
-    name    = outcomes, # table containing labeling conventions regarding outcomes 
+    name    = outcomes, # table containing labelling conventions regarding outcomes 
     command = list_outcomes()
-  ),
-  tar_target(
-    name    = data_lmer, # data formatted for linear mixed-effects regressions
-    command = prepare_lmm_data(d0 = data_half)
   ),
   
   ## DESCRIPTION OF THE SAMPLE ----
@@ -160,7 +160,7 @@ list(
   ),
   tar_target(
     name    = intention_to_treat_LMERs, # LMMs as the first approximation intention to treat analysis
-    command = conduct_lmer_loop(data = data_lmer, labs = outcomes)
+    command = conduct_lmer_loop(data = data_half, labs = outcomes)
   ),
   tar_target(
     name    = intention_to_treat_ANOVA_table, # extract a big (set of) ANOVA table(s)
@@ -198,6 +198,62 @@ list(
       x     = "treat",
       type  = "simp",
       tit   = "<b>Table 12<br>Paired comparisons.</b> Simple main effects of the Treatment variable in an intention-to-treat analysis."
+    )
+  ),
+  
+  ## SENSITIVITY ANALYSES ----
+  tar_target(
+    name    = per_protocol_ANCOVAs,
+    command = conduct_lmer_loop(
+      data = data_half,
+      labs = outcomes,
+      type = "baseline_pp"
+    )
+  ),
+  tar_target(
+    name    = per_protocol_ANCOVAs_interaction,
+    command = conduct_lmer_loop(
+      data = data_half,
+      labs = outcomes,
+      type = "baseline_pp2"
+    )
+  ),
+  tar_target(
+    name    = intention_to_treat_ANCOVAs,
+    command = conduct_lmer_loop(
+      data = data_half,
+      labs = outcomes,
+      type = "baseline"
+    )
+  ),
+  tar_target(
+    name    = intention_to_treat_ANCOVAs_interaction,
+    command = conduct_lmer_loop(
+      data = data_half,
+      labs = outcomes,
+      type = "baseline2"
+    )
+  ),
+  tar_target(
+    name    = per_protocol_baseline_sensitivity,
+    command = print_baseline_adjustment_comparisons_table(
+      vanilla = per_protocol_ANOVAs,
+      ancova1 = per_protocol_ANCOVAs,
+      ancova2 = per_protocol_ANCOVAs_interaction,
+      pp      = TRUE,
+      labs    = outcomes,
+      tit     = "<b>Table 13<br>Sensitivity analysis.</b> Comparison between the primary and baseline-adjusted simple main effect estimates of the Occasion variable in the per-protocol analysis."
+    )
+  ),
+  tar_target(
+    name    = intention_to_treat_baseline_sensitivity,
+    command = print_baseline_adjustment_comparisons_table(
+      vanilla = intention_to_treat_LMERs,
+      ancova1 = intention_to_treat_ANCOVAs,
+      ancova2 = intention_to_treat_ANCOVAs_interaction,
+      pp      = FALSE,
+      labs    = outcomes,
+      tit     = "<b>Table 14<br>Sensitivity analysis.</b> Comparison between the primary and baseline-adjusted simple main effect estimates of the Occasion variable in the intention-to-treat analysis."
     )
   ),
   
