@@ -5,6 +5,7 @@
 #' @param predictor Predictor variable
 #' @param reference Reference group
 #' @param y Outcome
+#' @param adjust Multiple testing adjustment
 #' @param dependent Paired (`TRUE`) or independent (`FALSE`)
 #' 
 #' @returns Tibble
@@ -16,11 +17,11 @@ test_paired_differences <- function(
     predictor,
     reference,
     y,
+    adjust = "holm",
     dependent = TRUE
 ) {
   lapply(c("t_test", "cohens_d"), function(fun) {
     fn <- getFromNamespace(fun, "rstatix")
-    cols <- seq_len(9)
     
     argument <- list(
       data = input,
@@ -34,13 +35,20 @@ test_paired_differences <- function(
     )
     
     if (grepl("t_test", fun)) {
-      cols <- seq_len(8)
       argument$hedges.correction <- NULL
       argument$ci <- NULL
     }
     
     set.seed(87542)
-    do.call(fn, args = argument)
+    tab <- do.call(fn, args = argument)
+    
+    if (grepl("t_test", fun)) {
+      tab <- tab |>
+        dplyr::ungroup() |>
+        rstatix::adjust_pvalue(method = adjust)
+    }
+    
+    tab
   }) |>
     purrr::reduce(
       dplyr::left_join,
@@ -53,7 +61,7 @@ test_paired_differences <- function(
 #' @param mod Model
 #' @param lab Labels
 #' @param adj Multiple comparisons adjustment
-#' @param form Forumla (as character)
+#' @param form Formula (as character)
 #' @param contr Contrast to {emmeans}
 #' 
 #' @returns data.frame
@@ -112,8 +120,8 @@ print_paired_comparisons <- function(
       comparison = paste(group2, group1, sep = "-"),
       t = rprint(statistic, 3),
       df = rprint(df, 0),
-      p = sapply(seq_len(dplyr::n()), \(i) pprint(p[i], dec = 3, text = FALSE)),
-      d = paste0(rprint(effsize, 2)," [", rprint(conf.low, 2),", ",rprint(conf.high, 2),"]")
+      p = sapply(seq_len(dplyr::n()), \(i) pprint(p.adj[i], dec = 3, text = FALSE)),
+      d = paste0(rprint(effsize, 2)," [", rprint(conf.low, 2),", ", rprint(conf.high, 2), "]")
     )
   
   if (x == "occas" & type == "main") {
@@ -240,7 +248,8 @@ print_paired_comparisons <- function(
       Quick Inventory of Depressive Symptomatology; HAMA: Hamilton's Anxiety Inventory, BAI: Beck's 
       Anxiety Scale; PSS: Perceived Stress Scale; HF-rTMS: high frequency repetitive transcranial magnetic
       stimulation; iTBS: intermittent theta burst stimulation; *t*: test statistic; df: degrees of freedom;
-      *p*: unadjusted p-value; *d*: Cohen's d with Hedges correction with its 95% confidence interval;
+      *p*: p-value after applying rowwise Holm's multiple correction adjustment for multiple comparisons;
+      *d*: Cohen's d with Hedges correction with its 95% confidence interval;
       ES: verbal classification of the effect size point estimate.")
   )
 }

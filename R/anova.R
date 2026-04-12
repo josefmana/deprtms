@@ -16,8 +16,15 @@ conduct_mixed_anova <- function(
 ) {
   data <-
     extract_per_protocol_data(data) |>
-    dplyr::select(tidyselect::all_of(c("STUDY_ID", "occasion", "treatment", outcome))) |>
+    dplyr::select(c(STUDY_ID, occasion, treatment, tidyselect::starts_with(outcome))) |>
     dplyr::mutate(occasion = factor(x = occasion, ordered = FALSE))
+  
+  baseline <- any(grepl("_pre", names(data)))
+
+  if (baseline) {
+    base    <- paste0(outcome, "_pre")
+    outcome <- paste0(outcome, "_post")
+  }
   
   aov <- rstatix::anova_test(
     data = data,
@@ -25,7 +32,8 @@ conduct_mixed_anova <- function(
     wid = "STUDY_ID",
     within = "occasion",
     between = "treatment",
-    effect.size = "ges"
+    effect.size = "ges",
+    covariate = unlist(ifelse(baseline, list(base), list(NULL)))
   )
   
   aov_tab <- rstatix::get_anova_table(x = aov, correction = "GG")
@@ -36,6 +44,7 @@ conduct_mixed_anova <- function(
     predictor = "treatment",
     reference = "HF-rTMS",
     y = outcome,
+    adjust = "holm",
     dependent = FALSE
   )
   

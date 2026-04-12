@@ -237,7 +237,7 @@ list_outcomes <- function() {
 #' @export
 tabs_struct <- function() {
   data.frame(
-    tar  = c(
+    tar = c(
       "sample_description",
       "response_rates",
       "per_protocol_descriptives",
@@ -303,7 +303,7 @@ extract_per_protocol_data <- function(data) {
 #' @export
 preformat_data <- function(input) {
   input |>
-    mutate(
+    dplyr::mutate(
       `Treatment:` = treatment,
       Occasion = factor(
         x = occasion,
