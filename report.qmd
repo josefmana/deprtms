@@ -22,168 +22,186 @@ library(gt)
 
 tar_source()
 
-d0  <- tar_read(data_wide)
+d0 <- tar_read(data_wide)
 
-# Number of participants:
-N   <- c(
-  total     = nrow(d0),
-  iTBS      = nrow(subset(d0, treatment == "iTBS")),
-  `HF-rTMS` = nrow(subset(d0, treatment == "HF-rTMS"))
-)
-
-# Age of participants:
-age <- cbind(
-  total     = c(M = rprint(mean(d0$age), 2), range = paste(range(d0$age), collapse = "-")),
-  iTBS      = c(M = rprint(mean(subset(d0, treatment == "iTBS")$age), 2), range = paste(range(subset(d0, treatment == "iTBS")$age), collapse = "-")
-      ),
-  `HF-rTMS` = c(M = rprint(mean(subset(d0, treatment == "HF-rTMS")$age), 2), range = paste(range(subset(d0, treatment == "HF-rTMS")$age), collapse = "-")
-      )
-  )
-
-# Percentage of females:
-fem <- cbind(
-  total     = paste0(rprint(100 * (table(d0$sex) |> prop.table()), 0), "%")[1],
-  iTBS      = paste0(rprint(100 * (table(subset(d0, treatment == "iTBS")$sex) |> prop.table()), 0), "%")[1],
-  `HF-rTMS` = paste0(rprint(100 * (table(subset(d0, treatment == "HF-rTMS")$sex) |> prop.table()), 0), "%")[1]
-)
-
-# Capitalize the first letter:
-# (from https://stackoverflow.com/a/18509816) 
 firstup <- function(x) {
   substr(x, 1, 1) <- toupper(substr(x, 1, 1))
   x
 }
-
 ```
 
 # Methods
 
 ## Data analysis
 
-All baseline demographic and clinical variables were described as means ± standard deviations if continuous (age, years of education and device energy) and as group-specific frequencies if categorical (sex, study completion, termination phase and medication types). A series of independent samples t tests with Welch's approximation to the degrees of freedom was used to test the hypothesis of zero between-group difference in means of continuous variables. A series of Pearson's $\chi^2$ tests was used to test the hypothesis that the randomization group and each categorical variable are stochastically independent of each other. The primary analysis was a per-protocol analysis that included participants who finished the study protocol in full including complete data in all outcome measures. Per-protocol average treatment effect (ATE) and its difference between randomization groups was estimated using a series of mixed ANOVAs with each outcome measure regressed on the randomization group as a between-subject factor, timepoint as a within-subject factor and their interaction. Decision about rejection of a hypothesis of zero mean difference with respect to each of these terms was based on an F test with p-value adjusted by Benjamini-Hochberg procedure [@Benjamini2001] for 5% false discovery rate (FDR) across all outcomes of interest. Thus effects associated with terms with adjusted p-value (i.e., the q-value) less than .05 were considered statistically significantly different from zero. This analysis was followed by inspection of pairwise comparisons between timepoints averaged over randomization groups (the main effect of timepoint) and conditional on randomization group (the simple main effect timepoint) as well as between randomization groups conditional on timepoint (the simple main effect of randomization group). Furthermore, response and remission rates were calculated for timepoints T1 and T2 and the hypothesis that the randomization group and response/remission rate are stochastically independent were tested via Pearson's $\chi^2$ tests separately for each timepoint. To describe individual response to treatment more directly, percentage changes^[Since all outcome measures are scaled such that higher scores imply more depression/anxiety symptoms, the percentage change was calculated as $100\times\frac{(Score_{T0}-Score_{T1})}{Score_{T0}}$ (and equivalently for T2). Consequently, positive values indicate decrease in symptoms, i.e., clinical improvement.] in T1 and T2 compared to T0 across depression and anxiety outcomes was calculated for each participant included in the per-protocol analysis and described by their means and standard deviations. Finally, a modified intention-to-treat analysis was conducted on the full sample using a set of linear mixed effects models whereby each outcome measure was regressed on randomization group, timepoint and their interaction on group level (the "fixed effects"), and subject-specific intercepts on subject level (the "random effects"). Results of these models were then analysed using a set of ANOVAs and pairwise comparisons analogous to the per-protocol analysis. All analyses were conducted in R version `r with( version, paste(major,minor,sep=".") )` using package "rstatix" for mixed ANOVAs and "lmer4" with "lmerTest" for mixed effect models [@rsoft; @Kassambara2023; @Bates2015; @Kuznetsova2017]. Computer code to produce presented results is available at [https://github.com/josefmana/deprtms.git](https://github.com/josefmana/deprtms.git).
+### Sample description
+
+All baseline demographic and clinical variables were summarized as means ± standard deviations for continuous variables (age, years of education, and device energy) and as group-specific frequencies for categorical variables (sex, study completion, termination phase, and medication types). A series of independent-samples t-tests with Welch’s approximation to the degrees of freedom was used to compare means of continuous variables, and a series of Pearson’s $\chi^2$ tests was used to assess independence of categorical variables across randomization groups.
+
+### Per-protocol analysis
+
+The primary analysis was a per-protocol (PP) analysis that included participants who completed the study protocol in full, including complete data on all outcome measures. Per-protocol average treatment effects (ATEs) and their differences between randomization groups were estimated using a series of mixed ANOVAs, with each outcome measure regressed on randomization group as a between-subject factor, timepoint as a within-subject factor, and their interaction. Decisions about rejection of the null hypothesis of zero mean difference for each of these terms were based on F-tests with p-values adjusted using the Benjamini–Hochberg procedure [@Benjamini2001] to control the false discovery rate (FDR) at 5% across all outcomes of interest. Thus, effects associated with terms with adjusted p-values^[Following the terminology used by @Benjamini2001, FDR-adjusted p-values are referred to as q-values.] less than .05 were considered statistically significant.
+
+This analysis was followed by inspection of pairwise comparisons between timepoints averaged over randomization groups (main effect of timepoint), between timepoints within each randomization group (simple main effect of timepoint), and between randomization groups within each timepoint (simple main effect of randomization group). The significance threshold within each set of pairwise comparisons (i.e., all comparisons for a given outcome) was based on Holm’s correction for multiple comparisons.
+
+### Modified intention to treat analysis
+
+A modified intention-to-treat (mITT) analysis was conducted on the full sample to evaluate the effect of missingness in the per-protocol analysis. For the mITT analysis, a set of linear mixed-effects models was fitted, with each outcome measure regressed on randomization group, timepoint, and their interaction at the group level (fixed effects), and subject-specific intercepts at the individual level (random effects). Results of these models were analyzed using ANOVAs and pairwise comparisons analogous to the per-protocol analysis, including Benjamini–Hochberg adjustment of ANOVA p-values and Tukey adjustment for multiple comparisons within each set of pairwise comparisons.
+
+### Response and remission rates
+
+Response and remission rates were calculated for timepoints T1 and T2, and the hypothesis that randomization group and response/remission status are independent was tested using Fisher’s exact tests separately for each timepoint. Decisions about rejection of the null hypothesis were based on p-values adjusted using the Benjamini–Hochberg procedure [@Benjamini2001] to control the FDR at 5% across all outcomes, timepoints, and rate types (response vs. remission).
+
+To describe individual responses to treatment more directly, percentage changes^[Since all outcome measures are scaled such that higher scores indicate more severe depression/anxiety symptoms, percentage change was calculated as $100\times\frac{(Score_{T0}-Score_{T1})}{Score_{T0}}$ (and analogously for T2). Positive values therefore indicate symptom reduction (clinical improvement).] at T1 and T2 relative to T0 were calculated for each participant included in the per-protocol analysis and summarized using means and standard deviations. These percentage changes were used for descriptive purposes only and were not included in any statistical analyses.
+
+### Sensitivity to baseline imbalance
+
+Since baseline symptom levels may differ between groups despite randomization, sensitivity analyses were conducted to assess the robustness of results to potential baseline imbalance. For each primary PP and mITT model, two baseline-adjusted ANCOVA models were fitted, and their simple main effects of timepoint were directly compared with the primary analyses.
+
+The first ANCOVA consisted of linear mixed-effects models with each outcome regressed on randomization group, post-test timepoint, their interaction, and baseline performance as fixed effects, and subject-specific intercepts as random effects. The second ANCOVA additionally included an interaction between baseline performance and post-test timepoint. In both models, baseline performance was treated as a fixed predictor, and only post-test measurements were treated as outcomes. Timepoint effects were derived from estimated marginal means evaluated at the mean baseline value of each outcome. PP and mITT sensitivity analyses differed only in the sample used for model fitting, with the latter using the full sample.
+
+### Software
+
+All analyses were conducted in R version `r with( version, paste(major,minor,sep=".") )` using package *rstatix* for mixed ANOVAs and *lmer4* with *lmerTest* and *emmeans* for mixed effect models [@rsoft; @Kassambara2023; @Bates2015; @Kuznetsova2017; @Lenth2026]. Computer code to produce presented results is available at [https://github.com/josefmana/deprtms.git](https://github.com/josefmana/deprtms.git).
 
 # Results
 
+```{r}
+#| label: desc
+N <- d0 |>
+  group_by(treatment) |>
+  summarise(n = n(), .groups = "drop") |>
+  pull(n, name = treatment)
+
+age <- d0 |>
+  group_by(treatment) |>
+  summarise(
+    M = rprint(mean(age), 2),
+    range = paste(range(age), collapse = "-"),
+    .groups = "drop"
+  ) |>
+  add_row(
+    treatment = "total",
+    M = rprint(mean(d0$age), 2),
+    range = paste(range(d0$age), collapse = "-")
+  ) |>
+  column_to_rownames("treatment")
+
+fem <- d0 |>
+  group_by(treatment) |>
+  summarise(
+    percfem = paste0(rprint(100 * (table(sex)) |> prop.table(), 0), "%")[1],
+    .groups = "drop"
+  ) |>
+  add_row(
+    treatment = "total",
+    percfem = paste0(rprint(100 * (table(d0$sex) |> prop.table()), 0), "%")[1]
+  ) |>
+  pull(percfem, name = treatment)
+```
+
 ## Participant demographics
 
-`r english(N["total"]) |> as.character() |> firstup()` subjects were randomized (mean age = `r age["M", "total"]`; range = `r age["range", "total"]`; `r fem[1, "total"]` females; n = `r N["iTBS"]` in iTBS group; n = `r N["HF-rTMS"]` in the HF-rTMS group). Baseline demographics are presented in @tbl-demo. We did not detect any statistically significant difference between randomization groups in demographic variables, clinical variables, completion rates or termination phase. The outcome variables are summarized in @tbl-pp-desc for the sample used in the per-protocol analysis and @tbl-itt-desc for the full sample. The data used for the per-protocol analysis are further summarised in @fig-per-protocol.
+`r firstup(as.character(english(sum(N))))` subjects were randomized (mean age = `r age["total", "M"]`; range = `r age["total", "range"]`; `r fem["total"]` females; n = `r N["iTBS"]` in iTBS group; n = `r N["HF-rTMS"]` in the HF-rTMS group). Baseline demographics are presented in @tbl-demo. A flow diagram showing participant progress through the phases of the randomized trial is presented in Figure 1.
+
+We did not detect any statistically significant difference between randomization groups in demographic variables, clinical variables, completion rates or termination phase. The outcome variables are summarized in @tbl-pp-desc for the sample used in the per-protocol analysis and @tbl-itt-desc for the full sample. The data used for the per-protocol analysis are further summarised in @fig-per-protocol.
 
 ```{r}
 #| label: tbl-demo
-#| tbl-cap: ""
-
 tar_read(sample_description)
-
 ```
 
 ```{r}
 #| label: tbl-pp-desc
-#| tbl-cap: ""
-
 tar_read(per_protocol_descriptives)
-
 ```
 
 ```{r}
 #| label: fig-per-protocol
 #| fig-cap: "Outcome measures' summaries of the per-protocol data."
-
 tar_read(per_protocol_figure)
-
 ```
 
 ## Depression outcomes
 
-The results of mixed ANOVAs and pairwise comparisons for the depression and anxiety outcomes are summarised in @tbl-pp-aov, and @tbl-pp-pwc-occas-main, @tbl-pp-pwc-occas-simp and @tbl-pp-pwc-treat-simp respectively. Response and remission rates summaries and statistical comparisons are presented in @tbl-resp-rates. In all depression measures, a statistically significant per-protocol ATE was detected as indicated by low q-values associated with the timepoint factor in @tbl-pp-aov. This effect was due to a moderate to large reduction of symptoms between T1 and T0, and negligible change between T2 and T1 (see @tbl-pp-pwc-occas-main). No statistically significant difference in per-protocol ATEs was detected between HF-rTMS and iTBS randomization groups (see the interaction terms in @tbl-pp-aov as well as @tbl-pp-pwc-occas-simp). Finally, a statistically significant difference between randomization groups in subscores "Disturbed Circadian Rhythm" and "Sleep Disorders" of HAMD with the iTBS randomization group showing higher symptoms across timepoints (see @tbl-pp-pwc-treat-simp). The highest response and remission rates of all depression outcome measures was observed in HAMD. The distributions of response and remission rates in all depression outcomes in both T1 and T2 timepoints were compatible with the null hypothesis of no difference between randomization groups according to the $\chi^2$ test (@tbl-resp-rates). 
+Results of mixed ANOVAs and pairwise comparisons for depression and anxiety outcomes are summarized in @tbl-pp-aov and @tbl-pp-pwc-occas-main, @tbl-pp-pwc-occas-simp, and @tbl-pp-pwc-treat-simp, respectively. Response and remission rates are presented in @tbl-resp-rates.
+
+Across all depression measures, a statistically significant per-protocol ATE was detected, as indicated by low q-values associated with the timepoint factor (@tbl-pp-aov). This effect was driven by a moderate to large reduction in symptoms from T0 to T1, followed by negligible change from T1 to T2 (@tbl-pp-pwc-occas-main). No statistically significant differences in ATEs between HF-rTMS and iTBS were detected (interaction terms in @tbl-pp-aov and @tbl-pp-pwc-occas-simp). A statistically significant difference between groups was observed for the HAMD subscores “Disturbed Circadian Rhythm” and “Sleep Disorders,” with the iTBS group showing higher symptom levels across timepoints (@tbl-pp-pwc-treat-simp).
+
+The highest response and remission rates among depression measures were observed for HAMD. Distributions of response and remission rates at T1 and T2 were consistent with the null hypothesis of no difference between groups after FDR adjustment (@tbl-resp-rates).
 
 ## Anxiety outcomes
 
-In all of HAMA, BAI and PSS, a statistically significant per-protocol ATE was detected (see @tbl-pp-aov) with the pattern of differences being similar to observed changes in depression measures reported above (see @tbl-pp-pwc-occas-main). Furthermore, a statistically significant difference in per-protocol ATEs between HF-rTMS and iTBS was detected for HAMA total score and HAMA psychological anxiety (see interaction terms in @tbl-pp-aov). More specifically, whereas in the HF-rTMS randomization group, there was a large reduction of anxiety symptoms assessed by HAMA from T0 to T1 and negligible change from T1 to T2, in the iTBS randomization group there was a moderate reduction of anxiety symptoms assessed by HAMA from T0 to T1 and small increase from T1 to T2 (see @tbl-pp-pwc-occas-simp). However, note that anxiety symptoms measured by HAMA remained lower at T2 compared to T0 in both randomization groups. Whereas there were zero or near zero response and remission rates in BAI, response and remission rates in HAMA ranged 17.8-50.0% and 68.9-88.2% respectively (see @tbl-resp-rates). HAMA response rates were statistically significantly higher in HF-rTMS compared to iTBS during the T2 timepoint assessment.
+Across anxiety outcomes (HAMA, BAI, and PSS), a statistically significant per-protocol ATE was observed (see @tbl-pp-aov), reflecting a pattern similar to that seen in depression outcomes: a reduction in symptoms from T0 to T1 followed by minimal change from T1 to T2 (@tbl-pp-pwc-occas-main).
+
+Importantly, group differences were observed for HAMA outcomes, with the HF-rTMS group showing a more favorable trajectory than the iTBS group. Specifically, the interaction between randomization group and timepoint was statistically significant for HAMA total score and HAMA psychological anxiety (@tbl-pp-aov). In the HF-rTMS group, there was a large reduction in HAMA scores from T0 to T1, which was maintained at T2 (i.e., both T1 and T2 were lower than T0, with no meaningful difference between T1 and T2). In contrast, the iTBS group showed a smaller, although statistically significant, reduction from T0 to T1, followed by no clear difference between T2 and either T0 or T1 (@tbl-pp-pwc-occas-simp).
+
+Response and remission rates for BAI were negligible. In contrast, HAMA response and remission rates ranged from 17.8% to 50.0% and from 68.9% to 88.2%, respectively (@tbl-resp-rates). At T2, response rates for HAMA were higher in the HF-rTMS group than in the iTBS group; however, this difference did not reach statistical significance after FDR adjustment.
 
 ```{r}
 #| label: tbl-pp-aov
-#| tbl-cap: ""
-
 tar_read(per_protocol_ANOVA_table)
-
 ```
 
 ```{r}
 #| label: tbl-resp-rates
-#| tbl-cap: ""
-
 tar_read(response_rates)
-
 ```
 
-## Intention-to-treat analysis
+## Sensitivity analyses
 
-Results of the modified intention-to-treat analysis are presented in @tbl-itt-aov, @tbl-itt-pwc-occas-main, @tbl-itt-pwc-occas-simp and @tbl-itt-pwc-treat-simp. Overall, the results are consistent with the per-protocol analysis presented above.
+Results of the mITT analysis are presented in @tbl-itt-aov, @tbl-itt-pwc-occas-main, @tbl-itt-pwc-occas-simp, and @tbl-itt-pwc-treat-simp. Baseline-adjusted simple main effects of timepoint are compared with the primary analyses in @tbl-pp-baseline-sens and @tbl-itt-baseline-sens. Overall, these results were consistent with the primary per-protocol analysis.
 
 # Suplementary data
 
 ```{r}
 #| label: tbl-itt-desc
-#| tbl-cap: ""
-
 tar_read(intention_to_treat_descriptives)
-
 ```
 
 ```{r}
 #| label: tbl-pp-pwc-occas-main
-#| tbl-cap: ""
-
 tar_read(per_protocol_pairwise_occasion_main)
-
 ```
 
 ```{r}
 #| label: tbl-pp-pwc-occas-simp
-#| tbl-cap: ""
-
 tar_read(per_protocol_pairwise_occasion_simple)
-
 ```
 
 ```{r}
 #| label: tbl-pp-pwc-treat-simp
-#| tbl-cap: ""
-
 tar_read(per_protocol_pairwise_treatment_simple)
-
 ```
 
 ```{r}
 #| label: tbl-itt-aov
-#| tbl-cap: ""
-
 tar_read(intention_to_treat_ANOVA_table)
-
 ```
 
 ```{r}
 #| label: tbl-itt-pwc-occas-main
-#| tbl-cap: ""
-
 tar_read(intention_to_treat_pwc_occasion_main)
-
 ```
 
 ```{r}
 #| label: tbl-itt-pwc-occas-simp
-#| tbl-cap: ""
-
 tar_read(intention_to_treat_pwc_occasion_simple)
-
 ```
 
 ```{r}
 #| label: tbl-itt-pwc-treat-simp
-#| tbl-cap: ""
-
 tar_read(intention_to_treat_pwc_treatment_simple)
+```
 
+```{r}
+#| label: tbl-pp-baseline-sens
+tar_read(per_protocol_baseline_sensitivity)
+```
+
+```{r}
+#| label: tbl-itt-baseline-sens
+tar_read(intention_to_treat_baseline_sensitivity)
 ```
 
 # References

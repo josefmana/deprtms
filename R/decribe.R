@@ -401,6 +401,11 @@ describe_responses <- function(data, labels, tit = " ") {
     gt::cols_label(
       tidyselect::starts_with("HF-rTMS") ~ "HF-rTMS",
       tidyselect::starts_with("iTBS") ~ "iTBS",
-      tidyselect::starts_with("stats") ~ "Stat. test"
+      tidyselect::starts_with("stats") ~ "Fisher's test"
+    ) |>
+    gt::tab_source_note(
+      source_note = "OR: odds ratio and its 95% confidence interval; p: unadjusted p-value;
+      none of the presented comparisons were statistically significant after adjusting for
+      5% False Discovery Rate across all comaprisons presented in the table."
     )
 }
